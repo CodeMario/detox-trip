@@ -1,0 +1,19 @@
+{
+  "name": "detoxtrip",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CodeMario/detox-trip.git"
+  },
+  "author": "codemario",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/CodeMario/detox-trip/issues"
+  },
+  "homepage": "https://github.com/CodeMario/detox-trip#readme"
+}
