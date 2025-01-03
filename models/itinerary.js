@@ -31,5 +31,10 @@ module.exports = class Itinerary extends Sequelize.Model {
             collate: "utf8_general_ci"
         });
     }
-    static associate(db) {}
+    static associate(db) {
+        db.Itinerary.hasMany(db.Activity, {foreignKey: 'itinerary_id', sourceKey: 'id', onDelete: "CASCADE"});
+
+        db.Itinerary.belongsTo(db.User, {foreignKey: 'user_id', sourceKey: 'id'});
+        db.Itinerary.belongsTo(db.Destination, {foreignKey: 'destination_id', sourceKey: 'id'});
+    }
 };

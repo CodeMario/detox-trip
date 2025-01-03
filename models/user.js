@@ -46,5 +46,12 @@ module.exports = class User extends Sequelize.Model {
             collate: "utf8_general_ci"
         });
     }
-    static associate(db) {}
+    static associate(db) {
+        db.User.hasOne(db.Itinerary, {foreignKey: 'user_id', sourceKey: 'id', onDelete: "CASCADE"});
+        db.User.hasMany(db.Emergency, {foreignKey: 'user_id', sourceKey: 'id', onDelete: "CASCADE"});
+        db.User.hasMany(db.Footprint, {foreignKey: 'user_id', sourceKey: 'id', onDelete: "CASCADE"});
+        db.User.hasMany(db.Post, {foreignKey: 'user_id', sourceKey: 'id', onDelete: "CASCADE"});
+        db.User.hasMany(db.Comment, {foreignKey: 'user_id', sourceKey: 'id', onDelete: "CASCADE"});
+        db.User.hasMany(db.Review, {foreignKey: 'user_id', sourceKey: 'id', onDelete: "CASCADE"});
+    }
 };

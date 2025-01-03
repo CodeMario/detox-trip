@@ -35,5 +35,9 @@ module.exports = class Post extends Sequelize.Model {
             collate: "utf8_general_ci"
         });
     }
-    static associate(db) {}
+    static associate(db) {
+        db.Post.hasMany(db.Comment, {foreignKey: 'post_id', sourceKey: 'id', onDelete: "CASCADE"});
+
+        db.Post.belongsTo(db.User, {foreignKey: 'user_id', sourceKey: 'id'});
+    }
 };

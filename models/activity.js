@@ -30,5 +30,7 @@ module.exports = class Activity extends Sequelize.Model {
             collate: "utf8_general_ci"
         });
     }
-    static associate(db) {}
+    static associate(db) {
+        db.Activity.belongsTo(db.Itinerary, {foreignKey: 'itinerary_id', sourceKey: 'id'});
+    }
 };

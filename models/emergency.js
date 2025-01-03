@@ -26,5 +26,7 @@ module.exports = class Emergency extends Sequelize.Model {
             collate: "utf8_general_ci"
         });
     }
-    static associate(db) {}
+    static associate(db) {
+        db.Emergency.belongsTo(db.User, {foreignKey: 'user_id', sourceKey: 'id'});
+    }
 };

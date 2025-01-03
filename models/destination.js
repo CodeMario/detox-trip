@@ -43,5 +43,8 @@ module.exports = class Destination extends Sequelize.Model {
             collate: "utf8_general_ci"
         });
     }
-    static associate(db) {}
+    static associate(db) {
+        db.Destination.hasMany(db.Itinerary, {foreignKey: 'destination_id', sourceKey: 'id', onDelete: "CASCADE"});
+        db.Destination.hasMany(db.Review, {foreignKey: 'destination_id', sourceKey: 'id', onDelete: "CASCADE"});
+    }
 };

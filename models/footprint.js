@@ -23,5 +23,8 @@ module.exports = class Footprint extends Sequelize.Model {
             collate: "utf8_general_ci"
         });
     }
-    static associate(db) {}
+    static associate(db) {
+        db.Footprint.belongsTo(db.User, {foreignKey: 'user_id', sourceKey: 'id'});
+        db.Footprint.belongsTo(db.Destination, {foreignKey: 'destination_id', sourceKey: 'id'});
+    }
 };
