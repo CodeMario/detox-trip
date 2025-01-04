@@ -8,12 +8,12 @@ module.exports = class User extends Sequelize.Model {
                 primaryKey : true,
                 autoIncrement : true
             },
-            email : {
+            login_id : {
                 type : Sequelize.STRING(255),
                 allowNull : false
             },
             password : {
-                type : Sequelize.CHAR(64)
+                type : Sequelize.STRING(100)
             },
             nickname : {
                 type : Sequelize.STRING(30),
@@ -23,13 +23,9 @@ module.exports = class User extends Sequelize.Model {
                 type : Sequelize.BOOLEAN,
                 defaultValue : false
             },
-            has_social_login : {
-                type : Sequelize.BOOLEAN,
-                defaultValue : false
-            },
-            has_local_login : {
-                type : Sequelize.BOOLEAN,
-                defaultValue : false
+            provider : {
+                type : Sequelize.STRING(30),
+                allowNull : false
             },
             is_active : {
                 type : Sequelize.BOOLEAN,
