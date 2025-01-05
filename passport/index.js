@@ -1,7 +1,7 @@
 const passport = require('passport');
 const User = require('../models/user');
 const local = require('./local');
-// const local = require('./google');
+const google = require('./google');
 
 module.exports = () => {
     //어떤 정보를 cookie에 담을지(user.id)
@@ -23,5 +23,5 @@ module.exports = () => {
     });
 
     local();
-    //google();
+    google();
 };

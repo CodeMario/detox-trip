@@ -10,10 +10,23 @@ router.post('/login', (req, res, next) => {
     })(req, res, next);
 });
 
-router.get('/logout',(req, res) => {
-    req.logout();
-    req.session.destroy();
+router.get('/google',
+    passport.authenticate('google', { scope: ['profile', 'email'] }));
+  
+    router.get('/google/callback', 
+    passport.authenticate('google', { failureRedirect: '/' }),
+    function(req, res) {
+      res.redirect('/');
+    }
+);
+
+router.get('/logout', (req, res, next) => {
+    req.logout((e) => {
+      if (e) { 
+        return next(err);
+    }
     res.redirect('/');
+    });
 });
 
 module.exports = router;

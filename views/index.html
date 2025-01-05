@@ -1,14 +1,29 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
-  </head>
-  <body>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Auth Button</title>
+    <style>
+        .google-auth-button {
+            border: none;
+            background: none;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        .google-auth-button img {
+            display: block;
+            width: 200px; /* 원하는 크기로 조정 */
+            height: auto;
+        }
+    </style>
+</head>
+<body>
     <form method="GET" action="/auth/google">
-      <button type="submit">google login</button>
+        <button type="submit" class="google-auth-button">
+            <img src="../images/web_light_rd_SI@2x.png" alt="구글 로그인 테스트">
+        </button>
     </form>
-  </body>
+</body>
 </html>

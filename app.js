@@ -1,5 +1,4 @@
 const express = require('express');
-const dotenv = require('dotenv');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
@@ -13,7 +12,7 @@ const authRouter = require('./routes/auth');
 const usersRouter = require('./routes/users');
 const { isNull } = require('util');
 
-dotenv.config();
+require('dotenv').config()
 
 const app = express();
 
@@ -43,6 +42,7 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
+app.use('/images', express.static('path/to/images'));
 app.use('/auth', authRouter);
 app.use('/users', usersRouter);
 
