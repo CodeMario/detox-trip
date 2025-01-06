@@ -14,6 +14,7 @@ module.exports = () => {
         try {
             const user = await User.findOne({
                 where: { id },
+                raw : true
             });
             if (user) return done(null, user);
         } catch (e) {
