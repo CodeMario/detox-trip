@@ -24,7 +24,7 @@ module.exports = class Destination extends Sequelize.Model {
                 type : Sequelize.TEXT,
                 allowNull : false
             },
-            image_path : {
+            image_name : {
                 type : Sequelize.STRING(150),
                 allowNull : false
             },

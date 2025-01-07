@@ -10,7 +10,7 @@ const { sequelize } = require('./models');
 
 const authRouter = require('./routes/auth');
 const usersRouter = require('./routes/users');
-const { isNull } = require('util');
+const destinationsRouter = require('./routes/destinations');
 
 require('dotenv').config()
 
@@ -42,9 +42,9 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-app.use('/images', express.static('path/to/images'));
 app.use('/auth', authRouter);
 app.use('/users', usersRouter);
+app.use('/destinations', destinationsRouter);
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, './views/index.html'));

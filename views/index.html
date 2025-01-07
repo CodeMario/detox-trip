@@ -2,28 +2,22 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Google Auth Button</title>
-    <style>
-        .google-auth-button {
-            border: none;
-            background: none;
-            cursor: pointer;
-            padding: 0;
-        }
-
-        .google-auth-button img {
-            display: block;
-            width: 200px; /* 원하는 크기로 조정 */
-            height: auto;
-        }
-    </style>
+    <title>test page</title>
 </head>
 <body>
     <form method="GET" action="/auth/google">
-        <button type="submit" class="google-auth-button">
+        <button type="submit">
             <img src="../images/web_light_rd_SI@2x.png" alt="구글 로그인 테스트">
         </button>
+    </form>
+    <br>
+    <form method="POST" action="/destinations" enctype="multipart/form-data">
+        <input type="text" placeholder='국가' name="country_name" required> <br>
+        <input type="text" placeholder='지역' name="region_name" required> <br>
+        <input type="text" placeholder='주소' name="address" required> <br>
+        <input type="text" placeholder='설명' name="description" required> <br>
+        <input type="file" name="image" accept="image/*" required>
+        <button type="submit">여행지 업로드</button>
     </form>
 </body>
 </html>

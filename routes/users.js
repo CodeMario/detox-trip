@@ -1,11 +1,12 @@
 const express = require('express');
 const bcrypt = require('bcrypt')
+
 const User = require('../models/user');
 const Emergency = require('../models/emergency');
 
 const router = express.Router();
 
-//모든 유저 조회회
+//모든 유저 조회
 router.get('/', async (req, res, next) => {
     try {
         const user = await User.findAll({
@@ -99,8 +100,8 @@ router.delete('/', async (req, res, next) => {
 
 //비상연락처 등록
 router.post('/emergency-contact', async (req, res, next) => {
-    const {contact_name, phone_number} = req.body
     try {
+        const {contact_name, phone_number} = req.body
         if (await Emergency.findOne({where : {phone_number, user_id : req.user.id}})){
             res.send('전화번호 중복');
         }
@@ -118,17 +119,6 @@ router.post('/emergency-contact', async (req, res, next) => {
     }
 });
 
-//비상 메시지 전송
-router.post('/sms', async (req, res, next) => {
-    try {
-        console.log('예정')
-        
-    } catch (e) {
-        console.error(e);
-        next(e);
-    }
-});
-
 //비상 연락처 삭제
 router.delete('/emergency-contact/:phone_number', async (req, res, next) => {
     try {
@@ -137,6 +127,17 @@ router.delete('/emergency-contact/:phone_number', async (req, res, next) => {
             where : {phone_number, user_id : req.user.id}
         });
         res.send('ok');
+        
+    } catch (e) {
+        console.error(e);
+        next(e);
+    }
+});
+
+//비상 메시지 전송
+router.post('/sms', async (req, res, next) => {
+    try {
+        console.log('예정')
         
     } catch (e) {
         console.error(e);
