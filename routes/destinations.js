@@ -1,36 +1,9 @@
 const express = require('express');
-const multer = require('multer');
 const path = require('path');
-
+const {destinationUpload, deleteImage} = require('../middlewares/imageHandler');
 const Destination = require('../models/destination');
 
 const router = express.Router();
-
-//Multer 저장소 설정
-const storage = multer.diskStorage({
-    destination: (req, file, callback) => {
-        callback(null, './images/destinations');
-    },
-    filename: (req, file, callback) => {
-        callback(null, `${Date.now()}_${file.originalname}`);
-    }
-});
-
-//Multer 필터 설정
-const fileFilter = (req, file, callback) => {
-    if (file.mimetype.startsWith('image/')) {
-        callback(null, true);
-    } else {
-        callback(new Error('이미지만 허용'), false);
-    }
-};
-
-//Multer 미들웨어 설정
-const upload = multer({ 
-    storage: storage,
-    fileFilter: fileFilter,
-    limits: { fileSize: 5 * 1024 * 1024 }
-});
 
 //전체 여행지 조회
 router.get('/', async (req, res, next) => {
@@ -63,7 +36,7 @@ router.get('/check-duplication', async (req, res, next) => {
 });
 
 //여행지 등록
-router.post('/', upload.single('image'), async (req, res, next) => {
+router.post('/', destinationUpload.single('image'), async (req, res, next) => {
     try {
         const {country_name, region_name, address, description} = req.body;
 
@@ -72,7 +45,7 @@ router.post('/', upload.single('image'), async (req, res, next) => {
             region_name,
             address,
             description,
-            image_name : req.file.filename
+            image_path : req.file.path
         });
         
         res.send('ok');
@@ -82,6 +55,55 @@ router.post('/', upload.single('image'), async (req, res, next) => {
     };
 });
 
+//여행지 수정
+router.post('/update', destinationUpload.single('image'), async (req, res, next) => {
+    try {
+        const {destination_id , country_name, region_name, address, description} = req.body;
+        const currentImagePath = await Destination.findOne({
+            where : {id : destination_id} ,
+            attributes : ['image_path']
+        });
+
+        await deleteImage(currentImagePath.image_path);
+
+        await Destination.update({
+            country_name,
+            region_name,
+            address,
+            description,
+            image_path : req.file.path
+        }, {
+            where : {id : destination_id}
+        });
+        
+        res.send('ok');
+    } catch (e) {
+        console.error(e);
+        next(e);
+    };
+});
+
+//여행지 삭제
+router.get('/delete', async (req, res, next) => {
+    try {
+        const {destination_id} = req.query;
+        const imagePath = await Destination.findOne({
+            where : {id : destination_id} ,
+            attributes : ['image_path']
+        });
+
+        await deleteImage(imagePath.image_path);
+
+        await Destination.destroy({
+            where : {id : destination_id}
+        });
+        
+        res.send('ok');
+    } catch (e) {
+        console.error(e);
+        next(e);
+    };
+});
 
 //여행지 추천
 router.get('/recommend', async (req, res, next) => {

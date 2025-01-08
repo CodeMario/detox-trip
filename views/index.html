@@ -10,7 +10,8 @@
             <img src="../images/web_light_rd_SI@2x.png" alt="구글 로그인 테스트">
         </button>
     </form>
-    <br>
+    <br><br>
+
     <form method="POST" action="/destinations" enctype="multipart/form-data">
         <input type="text" placeholder='국가' name="country_name" required> <br>
         <input type="text" placeholder='지역' name="region_name" required> <br>
@@ -18,6 +19,17 @@
         <input type="text" placeholder='설명' name="description" required> <br>
         <input type="file" name="image" accept="image/*" required>
         <button type="submit">여행지 업로드</button>
+    </form>
+    <br><br>
+
+    <form method="POST" action="/destinations/update" enctype="multipart/form-data">
+        <input type="text" placeholder='id' name="destination_id" required> <br>
+        <input type="text" placeholder='국가' name="country_name" required> <br>
+        <input type="text" placeholder='지역' name="region_name" required> <br>
+        <input type="text" placeholder='주소' name="address" required> <br>
+        <input type="text" placeholder='설명' name="description" required> <br>
+        <input type="file" name="image" accept="image/*" required>
+        <button type="submit">여행지 수정</button>
     </form>
 </body>
 </html>

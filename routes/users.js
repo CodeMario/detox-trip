@@ -80,7 +80,7 @@ router.post('/signup', async (req, res, next) => {
 });
 
 //회원 탈퇴
-router.delete('/', async (req, res, next) => {
+router.get('/delete', async (req, res, next) => {
     try {
         await User.destroy({
             where : {id : req.user.id}
@@ -120,9 +120,9 @@ router.post('/emergency-contact', async (req, res, next) => {
 });
 
 //비상 연락처 삭제
-router.delete('/emergency-contact/:phone_number', async (req, res, next) => {
+router.get('/emergency-contact/delete', async (req, res, next) => {
     try {
-        const phone_number = req.params.phone_number;
+        const phone_number = req.query;
         await Emergency.destroy({
             where : {phone_number, user_id : req.user.id}
         });
