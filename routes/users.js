@@ -38,8 +38,9 @@ router.get('/me', async (req, res, next) => {
 //아이디 중복 확인
 router.get('/check-duplication', async (req, res, next) => {
     try {
+        const { login_id } = req.query;
         const user = await User.findOne({
-            where : { login_id : req.query.loginId }
+            where : { login_id }
         });
 
         if (user) { res.send('no') }
