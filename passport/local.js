@@ -8,7 +8,7 @@ module.exports = () => {
         new Strategy({
             usernameField : 'login_id',
             passwordField: 'password'},
-            async (loginId, password, done) => {
+            async (login_id, password, done) => {
                 try {
                     const user = await User.findOne({
                         where: { login_id }

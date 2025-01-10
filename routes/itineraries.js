@@ -41,4 +41,46 @@ router.post('/', async (req, res, next) => {
     }
 });
 
+//여행일정 수정
+router.post('/update', async (req, res, next) => {
+    try {
+        const {itinerary_id, destination_id, start_date, end_date, total_time} = req.body;
+        const beforeItinerary = await Itinerary.findOne({
+            where : { id : itinerary_id },
+            attributes : [ "start_date", "end_date", "total_time", "destination_id" ]
+        });
+        
+        await Itinerary.update({
+            start_date : start_date ? start_date : beforeItinerary.start_date,
+            end_date : end_date ? end_date : beforeItinerary.end_date,
+            total_time : total_time ? total_time : beforeItinerary.total_time,
+            destination_id : destination_id ? destination_id : beforeItinerary.destination_id
+        }, {
+            where : {id : itinerary_id}
+        });
+
+        res.send('ok');
+    } catch(e) {
+        console.log(e);
+        next(e);
+    }
+});
+
+//여행일정 삭제
+router.get('/delete', async (req, res, next) => {
+    try {
+        const {itinerary_id} = req.query;
+
+        await Itinerary.destroy({
+            where : {id : itinerary_id}
+        });
+        
+        res.send('ok');
+    } catch (e) {
+        console.error(e);
+        next(e);
+    };
+});
+
+
 module.exports = router;
