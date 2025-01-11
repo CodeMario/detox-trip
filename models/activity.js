@@ -17,7 +17,8 @@ module.exports = class Activity extends Sequelize.Model {
                 allowNull : false
             },
             is_success : {
-                type : Sequelize.BOOLEAN
+                type : Sequelize.BOOLEAN,
+                defaultValue : false
             }
         },{
             sequelize,
