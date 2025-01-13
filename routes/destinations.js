@@ -2,6 +2,8 @@ const express = require('express');
 const path = require('path');
 const {destinationUpload, deleteImage} = require('../middlewares/imageHandler');
 const Destination = require('../models/destination');
+const Review = require('../models/review');
+const Footprint = require('../models/footprint');
 
 const router = express.Router();
 
@@ -106,9 +108,42 @@ router.get('/delete', async (req, res, next) => {
 });
 
 //여행지 추천
+//일단 가장 값이 높은 하나만 찾기 위해 findOne 사용
+//만약 상위 n개중 하나 뽑는식으로 다양한 가능성을 조금 준다면 findAll과 limit 조건 사용
 router.get('/recommend', async (req, res, next) => {
     try {
-        res.send('예정');
+        const rating = await Review.findOne({
+            attributes : ["destination_id", [Review.sequelize.fn("AVG", Review.sequelize.col("rating")), "result"]],
+            group : ["destination_id"],
+            order : [["result","DESC"]],
+            raw : true
+        });
+
+        const visiting = await Destination.findOne({
+            attributes : ["destination_id", "total_visits"],
+            order : [["total_visits", "DESC"]],
+            raw : true
+        });
+
+        const recent = await Footprint.findOne({
+            attributes : ["destination_id", [Footprint.sequelize.fn("COUNT", Footprint.sequelize.col("destination_id")), "result"]],
+            group : ["destination_id"],
+            order : [["result","DESC"]],
+            raw : true
+        });
+
+        //값이 없을때를 대비한 예외처리
+        const id_1 = rating ? rating.destination_id : null;
+        const id_2 = visiting ? visiting.destination_id : null;
+        const id_3 = recent ? recent.destination_id : null;
+        const id_list = [id_1,id_2,id_3].filter(id => id !== null)
+
+        const destination_list = await Destination.findAll({
+            where : {id : {[Op.or] : id_list}},
+            raw : true
+        });
+
+        res.send(destination_list);
     } catch (e) {
         console.error(e);
         next(e);
