@@ -10,7 +10,8 @@ const router = express.Router();
 router.get('/', async (req, res, next) => {
     try {
         const user = await User.findAll({
-            attributes: ['login_id','nickname','is_active']
+            attributes: ['login_id','nickname','is_active'],
+            raw : true
         });
 
         res.send(user)
@@ -25,7 +26,8 @@ router.get('/me', async (req, res, next) => {
     try {
         const user = await User.findOne({
             where : { login_id : req.user.login_id },
-            attributes: ['login_id','nickname','is_active']
+            attributes: ['login_id','nickname','is_active'],
+            raw : true
         });
 
         res.send(user)
@@ -60,20 +62,15 @@ router.post('/signup', async (req, res, next) => {
             where : {login_id}
         });
 
-        try {
-            const hash = await bcrypt.hash(password, 12);
-            await User.create({
-                login_id,
-                password: hash,
-                nickname,
-                provider: 'local'
-            });
-            res.redirect('/');
+        const hash = await bcrypt.hash(password, 12);
+        await User.create({
+            login_id,
+            password: hash,
+            nickname,
+            provider: 'local'
+        });
 
-        } catch (e) {
-            console.error(e);
-            next(e);
-        }
+        res.send('ok');
     } catch (e) {
         console.error(e);
         next(e);

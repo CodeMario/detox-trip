@@ -10,7 +10,8 @@ const router = express.Router();
 router.get('/', async (req, res, next) => {
     try {
         const activity = await Activity.findAll({
-            where : {user_id : req.user.id}
+            where : {user_id : req.user.id},
+            raw : true
         });
 
         res.send(activity);
@@ -26,15 +27,17 @@ router.post('/', async (req, res, next) => {
         const {itinerary_id, activity_name, target_time} = req.body;
         const total_time = await Activity.findAll({
             attributes : [[Activity.sequelize.fn("SUM", Activity.sequelize.col("target_time")), "time"]],
-            group : ["itinerary_id"]
+            group : ["itinerary_id"],
+            raw:true
         });
         const limit_time = await Itinerary.findOne({
             where : {id : itinerary_id},
-            attributes : ["total_time"]
+            attributes : ["total_time"],
+            raw:true
         });
 
         if (total_time) {
-            if (limit_time.total_time - Number(total_time[0].getDataValue("time")) < 0) {
+            if (limit_time.total_time - Number(total_time[0].time) < 0) {
                 res.send('목표시간 초과');
             }
         }

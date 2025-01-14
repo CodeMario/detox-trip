@@ -8,7 +8,8 @@ const router = express.Router();
 router.get('/', async (req, res, next) => {
     try {
         const itinerary = await Itinerary.findOne({
-            where : { user_id : req.user.id }
+            where : { user_id : req.user.id },
+            raw : true
         });
         if (itinerary) {
             res.send(itinerary);

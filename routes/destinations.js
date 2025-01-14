@@ -12,7 +12,8 @@ router.get('/', async (req, res, next) => {
     try {
         const destination = await Destination.findAll({
             attributes: ['id','region_name','country_name',
-                'address','description','image_path']
+                'address','description','image_path'],
+            raw : true
         });
 
         res.send(destination);
