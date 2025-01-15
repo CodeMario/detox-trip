@@ -14,6 +14,7 @@ const destinationsRouter = require('./routes/destinations');
 const itinerariesRouter = require('./routes/itineraries');
 const activitiesRouter = require('./routes/activities');
 const reviewsRouter = require('./routes/reviews');
+const postsRouter = require('./routes/posts');
 
 require('dotenv').config()
 
@@ -51,6 +52,7 @@ app.use('/destinations', destinationsRouter);
 app.use('/itineraries', itinerariesRouter);
 app.use('/activities', activitiesRouter);
 app.use('/reviews', reviewsRouter);
+app.use('/posts', postsRouter);
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, './views/index.html'));

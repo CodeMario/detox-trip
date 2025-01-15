@@ -5,6 +5,7 @@ const Footprint = require('../models/footprint');
 
 const router = express.Router();
 
+//리뷰 전체 조회
 router.get('/', async (req, res, next) => {
     try {
         const review = await Review.findAll({
@@ -18,6 +19,7 @@ router.get('/', async (req, res, next) => {
     }
 });
 
+//개인 리뷰 조회
 router.get('/me', async (req, res, next) => {
     try {
         const review = await Review.findOne({
@@ -32,6 +34,7 @@ router.get('/me', async (req, res, next) => {
     }
 });
 
+//선택 리뷰 조회
 router.get('/this', async (req, res, next) => {
     try {
         const {destination_id} = req.query;
@@ -47,6 +50,7 @@ router.get('/this', async (req, res, next) => {
     }
 });
 
+//리뷰 리마인더
 router.get('/remainder', async (req, res, next) => {
     try {
         const review = await Footprint.findAll({
@@ -61,6 +65,7 @@ router.get('/remainder', async (req, res, next) => {
     }
 });
 
+//리뷰 등록
 router.post('/', async (req, res, next) => {
     try {
         const {destination_id, r_content, r_posted_time, rating} = req.body;
@@ -80,6 +85,7 @@ router.post('/', async (req, res, next) => {
     }
 });
 
+//리뷰 수정
 router.post('/update', async (req, res, next) => {
     try {
         const {review_id, r_content, r_posted_time, rating} = req.body;
@@ -99,6 +105,7 @@ router.post('/update', async (req, res, next) => {
     }
 });
 
+//리뷰 삭제
 router.get('/delete', async (req, res, next) => {
     try {
         const {review_id} = req.query;
