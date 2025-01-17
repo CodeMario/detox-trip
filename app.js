@@ -32,6 +32,7 @@ app.use(cookieParser(process.env.COOKIE_SECRET));
 //내장된 body-parsar 역할
 app.use(express.json()); 
 app.use(express.urlencoded( {extended : false } ));
+
 app.use(session({
     resave: false,
     saveUninitialized: false,
@@ -54,8 +55,13 @@ app.use('/activities', activitiesRouter);
 app.use('/reviews', reviewsRouter);
 app.use('/posts', postsRouter);
 
+//html에서 직접 리다이렉트 할 때 필요한 정적 경로
+app.use(express.static(path.join(__dirname, 'views')));
+//images 폴더에서 이미지 꺼내올 때 필요한 정적경로
+app.use(express.static(path.join(__dirname, 'images')));
+
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, './views/index.html'));
+    res.sendFile(path.join(__dirname, '/index.html'));
 });
 
 app.use((err, req, res, next) => {

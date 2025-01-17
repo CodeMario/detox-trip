@@ -2,34 +2,56 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>test page</title>
+    <title>DetoxTrip</title>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            flex-direction: column;
+        }
+        form {
+            display: flex;
+            align-items: center;
+            flex-direction: column;
+        }
+        .logo {
+            color : #144e37;
+            font-size : 80px;
+        }
+        .no-border {
+            border: none;
+        }
+        button {
+            background: transparent;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
+    <div class="logo">
+        <img src="/logo.png"> DetoxTrip
+    </div>
+    <br>
+
+    <form method="POST" action="/auth/login">
+        <input type="text" placeholder='ID' name="login_id" required> <br>
+        <input type="text" placeholder='Password' name="password" required> <br>
+        <br>
+        <button type="submit">로그인</button>
+    </form>
+    <br>
+
     <form method="GET" action="/auth/google">
-        <button type="submit">
-            <img src="../images/web_light_rd_SI@2x.png" alt="구글 로그인 테스트">
+        <button type="submit" class="no-border">
+            <img src="/web_light_rd_SI@2x.png">
         </button>
     </form>
-    <br><br>
+    <br>
 
-    <form method="POST" action="/destinations" enctype="multipart/form-data">
-        <input type="text" placeholder='국가' name="country_name" required> <br>
-        <input type="text" placeholder='지역' name="region_name" required> <br>
-        <input type="text" placeholder='주소' name="address" required> <br>
-        <input type="text" placeholder='설명' name="description" required> <br>
-        <input type="file" name="image" accept="image/*" required>
-        <button type="submit">여행지 업로드</button>
-    </form>
-    <br><br>
-
-    <form method="POST" action="/destinations/update" enctype="multipart/form-data">
-        <input type="text" placeholder='id' name="destination_id" required> <br>
-        <input type="text" placeholder='국가' name="country_name" required> <br>
-        <input type="text" placeholder='지역' name="region_name" required> <br>
-        <input type="text" placeholder='주소' name="address" required> <br>
-        <input type="text" placeholder='설명' name="description" required> <br>
-        <input type="file" name="image" accept="image/*" required>
-        <button type="submit">여행지 수정</button>
-    </form>
+    <a href="/signup.html">
+        <button type="submit" class="no-border">회원가입</button>
+    </a>
 </body>
 </html>

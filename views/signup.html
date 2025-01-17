@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Detox-Trip</title>
+</head>
+<body>
+    <form method="POST" action="/auth/login">
+        <input type="text" placeholder='ID' name="login_id" required> <br>
+        <input type="text" placeholder='Password' name="password" required> <br>
+        <button type="submit">로그인</button>
+    </form>
+    <br><br>
+
+    <a href="signup.html">
+        <button type="submit">회원가입</button>
+    </a>
+    <br><br>
+
+    <form method="GET" action="/auth/google">
+        <button type="submit">
+            <img src="../images/web_light_rd_SI@2x.png" alt="구글 로그인 테스트">
+        </button>
+    </form>
+</body>
+</html>
