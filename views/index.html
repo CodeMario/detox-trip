@@ -4,28 +4,58 @@
     <meta charset="UTF-8">
     <title>DetoxTrip</title>
     <style>
-        html, body {
-            height: 100%;
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
             margin: 0;
-            display: flex;
-            align-items: center;
-            flex-direction: column;
-        }
-        form {
-            display: flex;
-            align-items: center;
             flex-direction: column;
         }
         .logo {
             color : #144e37;
             font-size : 80px;
         }
+        .form-container {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 300px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
         .no-border {
             border: none;
+        }
+        .form-action {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 4px;
+            background-color: #007bff;
+            color: white;
+            white-space: nowrap;
+        }
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
         }
         button {
             background: transparent;
             cursor: pointer;
+        }
+        #googleBtn img {
+            width: 150px;
+            height: auto;
         }
     </style>
 </head>
@@ -35,23 +65,60 @@
     </div>
     <br>
 
-    <form method="POST" action="/auth/login">
-        <input type="text" placeholder='ID' name="login_id" required> <br>
-        <input type="text" placeholder='Password' name="password" required> <br>
-        <br>
-        <button type="submit">로그인</button>
-    </form>
-    <br>
+    <div class="form-container">
+        <div class="form-group">
+            <input type="text" placeholder='ID' id="loginId" required>
+        </div>
+        <div class="form-group">
+            <input type="password" placeholder='Password' id="password" required>
+        </div>
+        <div class = "button-container">
+            <button type="submit" class = "form-action" id="loginBtn">로그인</button>
+            <button type="submit" class="no-border" id="googleBtn">
+                <img src="/web_light_rd_SI@2x.png">
+            </button>
+        </div>
+        <div class = "button-container">
+            <button class="no-border" id="signupBtn">회원가입</button>
+        </div>
+    </div>
+    <script>
+        document.getElementById('loginBtn').addEventListener('click', function() {
+            const loginId = document.getElementById('loginId').value;
+            const password = document.getElementById('password').value;
+            if (loginId && password) {
+                fetch('/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ loginId, password })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.result) {
+                        window.location.href = "/mainpage.html";
+                    } else {
+                        alert('아이디 또는 비밀번호가 틀렸습니다.');
+                    }
+                })
+                .catch(error => {
+                    alert('로그인 중 오류가 발생했습니다.');
+                    console.error(error);
+                });
+            } else {
+                alert('아이디와 비밀번호를 입력해주세요.');
+            }
+        });
 
-    <form method="GET" action="/auth/google">
-        <button type="submit" class="no-border">
-            <img src="/web_light_rd_SI@2x.png">
-        </button>
-    </form>
-    <br>
+        document.getElementById('googleBtn').addEventListener('click', function() {
+            window.location.href = "/auth/google";
+        });
 
-    <a href="/signup.html">
-        <button type="submit" class="no-border">회원가입</button>
-    </a>
+        document.getElementById('signupBtn').addEventListener('click', function() {
+            window.location.href = "/signup.html";
+        });
+
+    </script>
 </body>
 </html>

@@ -15,6 +15,7 @@ const itinerariesRouter = require('./routes/itineraries');
 const activitiesRouter = require('./routes/activities');
 const reviewsRouter = require('./routes/reviews');
 const postsRouter = require('./routes/posts');
+const { resourceLimits } = require('worker_threads');
 
 require('dotenv').config()
 
@@ -64,9 +65,12 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '/index.html'));
 });
 
-app.use((err, req, res, next) => {
-    console.error(err);
-    res.status(500).send(err);
+app.use((e, req, res, next) => {
+    response = { 
+        result : false,
+        error : e
+    }
+    res.status(500).send(response);
 });
 
 app.listen(app.get('port'), () => {

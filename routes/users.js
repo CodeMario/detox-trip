@@ -6,6 +6,8 @@ const Emergency = require('../models/emergency');
 
 const router = express.Router();
 
+const response = {result : true}
+
 //모든 유저 조회
 router.get('/', async (req, res, next) => {
     try {
@@ -40,14 +42,14 @@ router.get('/me', async (req, res, next) => {
 //아이디 중복 확인
 router.get('/check-duplication', async (req, res, next) => {
     try {
-        const { login_id } = req.query;
+        const { loginId } = req.query;
         const user = await User.findOne({
-            where : { login_id }
+            where : { login_id : loginId }
         });
 
-        if (user) { res.send('no') }
-        else { res.send('ok') }
+        if (user) {response.result = false;}
 
+        res.status(200).send(response);
     } catch (e) {
         console.error(e);
         next(e);
@@ -57,20 +59,17 @@ router.get('/check-duplication', async (req, res, next) => {
 //회원가입
 router.post('/signup', async (req, res, next) => {
     try {
-        const {login_id, password, nickname} = req.body;
-        const user = await User.findOne({
-            where : {login_id}
-        });
+        const {loginId, password, nickname} = req.body;
 
         const hash = await bcrypt.hash(password, 12);
         await User.create({
-            login_id,
+            login_id : loginId,
             password: hash,
             nickname,
             provider: 'local'
         });
 
-        res.send('ok');
+        res.status(200).send(response);
     } catch (e) {
         console.error(e);
         next(e);

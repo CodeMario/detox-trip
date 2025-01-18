@@ -2,25 +2,161 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Detox-Trip</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DetoxTrip</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            flex-direction: column;
+        }
+        .logo {
+            color : #144e37;
+            font-size : 80px;
+        }
+        .form-container {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 300px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+            display: flex;
+            height: 30px;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 4px;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .form-actions button:hover {
+            background-color: #0056b3;
+        }
+        .input-container {
+            display: flex;
+            justify-items: center;
+        }
+        #login_id {
+            display: inline-block;
+        }
+        #checkIdBtn {
+            display: inline-block;
+        }
+    </style>
 </head>
 <body>
-    <form method="POST" action="/auth/login">
-        <input type="text" placeholder='ID' name="login_id" required> <br>
-        <input type="text" placeholder='Password' name="password" required> <br>
-        <button type="submit">로그인</button>
-    </form>
-    <br><br>
+    <div class="logo">
+        <img src="/logo.png"> DetoxTrip
+    </div>
+    <br>
 
-    <a href="signup.html">
-        <button type="submit">회원가입</button>
-    </a>
-    <br><br>
+    <div class="form-container">
+        <form id="signupForm">
+            <div class="form-group">
+                <input type="text" id="loginId" placeholder='아이디를 입력하세요' required>
+                <button type="button" id="checkIdBtn">중복 확인</button>
+            </div>
+            <div class="form-group">
+                <input type="password" id="password" placeholder='비밀번호를 입력하세요' required>
+            </div>
+            <div class="form-group">
+                <input type="password" id="confirmPassword" placeholder='비밀번호를 다시 입력하세요' required>
+            </div>
+            <div class="form-group">
+                <input type="text" id="nickname" placeholder='닉네임을 입력하세요'required>
+            </div>
+            <div class="form-actions">
+                <button type="submit" id = "signupBtn">회원가입</button>
+                <button id = "cancleBtn">취소</button>
+            </div>
+        </form>
+    </div>
+    <script>
+        let isLoginIdValid = false;
 
-    <form method="GET" action="/auth/google">
-        <button type="submit">
-            <img src="../images/web_light_rd_SI@2x.png" alt="구글 로그인 테스트">
-        </button>
-    </form>
+        document.getElementById('checkIdBtn').addEventListener('click', function() {
+            const loginId = document.getElementById('loginId').value;
+            if (loginId) {
+                fetch(`/users/check-duplication?loginId=${encodeURIComponent(loginId)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.result) {
+                        alert('사용 가능한 아이디입니다.');
+                        isLoginIdValid = true;
+                    } else {
+                        alert('이미 사용 중인 아이디입니다.');
+                        isLoginIdValid = false;
+                    }
+                })
+                .catch(error => {
+                    alert('아이디 확인 중 오류가 발생했습니다.');
+                    console.error(error);
+                });
+            } else {
+                alert('아이디를 입력해주세요.');
+            }
+        });
+
+        document.getElementById('signupForm').addEventListener('submit', function(event) {
+            if (!isLoginIdValid) {
+                event.preventDefault();
+                alert("아이디 중복 확인을 해주세요.");
+            } else {
+                event.preventDefault();
+
+                const loginId = document.getElementById('loginId').value;
+                const password = document.getElementById('password').value;
+                const confirmPassword = document.getElementById('confirmPassword').value;
+                const nickname = document.getElementById('nickname').value;
+
+                if (password !== confirmPassword) {
+                    alert('비밀번호가 일치하지 않습니다.');
+                    return;
+                }
+
+                fetch('/users/signup', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ loginId, password, nickname })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.result) {
+                        alert('회원가입이 완료되었습니다.');
+                        window.location.href = "/index.html";
+                    } else {
+                        alert('회원가입에 실패했습니다.');
+                    }
+                })
+                .catch(error => {
+                    alert('회원가입 중 오류가 발생했습니다.');
+                    console.error(error);
+                });
+            }
+        }
+    );
+    document.getElementById('cancleBtn').addEventListener('click', function() {
+        window.location.href = "/index.html";
+    });
+            
+    </script>
 </body>
 </html>
