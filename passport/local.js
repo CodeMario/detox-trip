@@ -16,7 +16,7 @@ module.exports = () => {
                     if (user && await bcrypt.compare(password, user.password))
                         done(null, user);
                     else
-                    done(null, false, user ? false : false);
+                    done(null, false, '아이디 또는 비밀번호가 틀렸습니다.');
                 }
                 catch (e) {
                     console.error(e);

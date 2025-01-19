@@ -16,7 +16,7 @@ router.get('/google',
     passport.authenticate('google', { scope: ['profile', 'email'] }));
     router.get('/google/callback', 
     passport.authenticate('google', { failureRedirect: '/' }),
-    function(req, res) {res.status(200).send()}
+    function(req, res) {res.redirect('/mainpage.html')}
 );
 
 router.get('/logout', (req, res, next) => {

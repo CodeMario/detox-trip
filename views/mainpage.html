@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>DetoxTrip</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .logo {
+            color : #144e37;
+            font-size : 18px;
+            font-weight: bold;
+        }
+
+        .logo img {
+            width: auto;
+            height: 18px;
+        }
+
+        .greeting {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .icons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .icon {
+            width: 30px;
+            height: 30px;
+            background-color: #ccc;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .menu {
+            display: flex;
+            justify-content: center;
+            gap: 50px;
+            padding: 10px 20px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .menu button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #007BFF;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .menu button:hover {
+            background-color: #0056b3;
+        }
+
+        .main-content {
+            display: flex;
+            justify-content: space-around;
+            padding: 20px;
+        }
+
+        .schedule, .goals {
+            width: 45%;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #fefefe;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .schedule h2, .goals h2 {
+            margin-top: 0;
+            color: #144e37;
+        }
+
+        .goals ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .goals li {
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        .goals input[type="checkbox"] {
+            margin-right: 10px;
+        }
+
+        .no-schedule {
+            color: #999;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo">
+        <img src="/logo.png"> DetoxTrip
+    </div>
+    <div class="greeting">Hello, User!</div>
+    <div class="icons">
+        <div class="icon">👤</div>
+        <div class="icon">🚨</div>
+    </div>
+</header>
+
+<div class="menu">
+    <button onclick="location.href='page1.html'">여행 일정</button>
+    <button onclick="location.href='page2.html'">여행지 추천</button>
+    <button onclick="location.href='page3.html'">커뮤니티</button>
+    <button onclick="location.href='page4.html'">여행 리뷰</button>
+</div>
+
+<div class="main-content">
+    <div class="schedule">
+        <h2>여행 일정</h2>
+        <div id="schedule-content" class="no-schedule">계획된 일정이 없습니다.</div>
+    </div>
+    <div class="goals">
+        <h2>목표</h2>
+        <ul>
+            <li><input type="checkbox"> 목표 1</li>
+            <li><input type="checkbox"> 목표 2</li>
+            <li><input type="checkbox"> 목표 3</li>
+        </ul>
+    </div>
+</div>
+
+<script>
+    // 여행 일정 데이터 예시 (서버에서 받아오는 데이터를 대체)
+    const scheduleData = {
+        location: "서울",
+        date: "2025-01-20",
+        goals: ["맛집 탐방", "박물관 방문", "한강 산책"]
+    };
+
+    const scheduleContent = document.getElementById("schedule-content");
+
+    if (scheduleData) {
+        scheduleContent.classList.remove("no-schedule");
+        scheduleContent.innerHTML = `
+            <p><strong>장소:</strong> ${scheduleData.location}</p>
+            <p><strong>날짜:</strong> ${scheduleData.date}</p>
+            <p><strong>목표:</strong></p>
+            <ul>
+                ${scheduleData.goals.map(goal => `<li>${goal}</li>`).join("")}
+            </ul>
+        `;
+    }
+</script>
+
+</body>
+</html>
