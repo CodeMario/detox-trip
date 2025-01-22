@@ -121,7 +121,7 @@
     <div class="logo">
         <img src="/logo.png"> DetoxTrip
     </div>
-    <div class="greeting">Hello, User!</div>
+    <div class="greeting">안녕하세요, 사용자님</div>
     <div class="icons">
         <div class="icon">👤</div>
         <div class="icon">🚨</div>
@@ -142,35 +142,78 @@
     </div>
     <div class="goals">
         <h2>목표</h2>
-        <ul>
-            <li><input type="checkbox"> 목표 1</li>
-            <li><input type="checkbox"> 목표 2</li>
-            <li><input type="checkbox"> 목표 3</li>
+        <ul id="goal-list">
+            <li class="no-goals">목표가 없습니다.</li>
         </ul>
     </div>
 </div>
 
 <script>
-    // 여행 일정 데이터 예시 (서버에서 받아오는 데이터를 대체)
-    const scheduleData = {
-        location: "서울",
-        date: "2025-01-20",
-        goals: ["맛집 탐방", "박물관 방문", "한강 산책"]
-    };
+    // 데이터 가져오기 및 렌더링
+    async function fetchData() {
+        try {
+            // 유저 데이터 가져오기
+            const userResponse = await fetch('/users/me');
+            const userData = await userResponse.json();
 
-    const scheduleContent = document.getElementById("schedule-content");
+            // 유저 데이터의 result 속성에서 정보 접근
+            const user = userData.result; // result 객체 추출
 
-    if (scheduleData) {
-        scheduleContent.classList.remove("no-schedule");
-        scheduleContent.innerHTML = `
-            <p><strong>장소:</strong> ${scheduleData.location}</p>
-            <p><strong>날짜:</strong> ${scheduleData.date}</p>
-            <p><strong>목표:</strong></p>
-            <ul>
-                ${scheduleData.goals.map(goal => `<li>${goal}</li>`).join("")}
-            </ul>
-        `;
+            // 계정 비활성화 체크
+            if (!user.is_active) {
+                alert('계정이 비활성화되었습니다. 로그인 화면으로 이동합니다.');
+                window.location.href = "/index.html";
+                return;
+            }
+
+            // 관리자 여부 체크
+            if (user.is_admin) {
+                window.location.href = "/admin.html";
+                return;
+            }
+
+            // 유저 닉네임 반영
+            const greeting = document.querySelector('.greeting');
+            greeting.textContent = `안녕하세요, ${user.nickname}님`;
+
+            // 여행 일정 및 목표 데이터 가져오기
+            const itineraryResponse = await fetch('/itineraries');
+            const itineraryData = await itineraryResponse.json();
+
+            // 여행 일정 렌더링
+            const scheduleContent = document.getElementById('schedule-content');
+            const itinerary = itineraryData.result;
+
+            if (itinerary) {
+                scheduleContent.classList.remove('no-schedule');
+                const startDate = new Date(itinerary.start_date).toISOString().split('T')[0];
+                const endDate = new Date(itinerary.end_date).toISOString().split('T')[0];
+                scheduleContent.innerHTML = `
+                <p><strong>일정:</strong> ${startDate} ~ ${endDate}</p>
+                `;
+            }
+
+            // 목표 렌더링
+            const activities = itinerary.Activities;  // 서버에서 받은 activities 데이터
+            
+            // 목표 렌더링
+            const goalList = document.getElementById('goal-list');
+            console.log('Activities data:', activities);
+            if (activities && activities.length > 0) {
+                goalList.innerHTML = activities.map(activity => `
+                    <li>
+                        <input type="checkbox">
+                        <span>${activity.activity_name} (${activity.target_time}분)</span>
+                    </li>
+                `).join('');
+            } else {
+                goalList.innerHTML = '<li class="no-goals">목표가 없습니다.</li>';
+            }
+        } catch (error) {
+            console.error('데이터 가져오기 오류:', error);
+        }
     }
+    fetchData();
 </script>
 
 </body>

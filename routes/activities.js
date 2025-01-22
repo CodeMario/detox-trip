@@ -6,20 +6,7 @@ const { sequelize } = require('../models');
 
 const router = express.Router();
 
-//세부목표 조회
-router.get('/', async (req, res, next) => {
-    try {
-        const activity = await Activity.findAll({
-            where : {user_id : req.user.id},
-            raw : true
-        });
-
-        res.send(activity);
-    } catch(e) {
-        console.log(e);
-        next(e);
-    }
-});
+const response = {result : true}
 
 //세부목표 등록
 router.post('/', async (req, res, next) => {

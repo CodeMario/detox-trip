@@ -1,22 +1,30 @@
 const express = require('express');
 
 const Itinerary = require('../models/itinerary');
+const Activity = require('../models/activity');
 
 const router = express.Router();
 
-//여행일정 조회
+const response = {result : true}
+
+//여행일정 및 세부 목표 조회
 router.get('/', async (req, res, next) => {
     try {
         const itinerary = await Itinerary.findOne({
-            where : { user_id : req.user.id },
-            raw : true
+            where: { user_id: req.user.id },
+            include: [{
+                model: Activity,
+                required: false
+            }]
         });
         if (itinerary) {
-            res.send(itinerary);
+            // Sequelize 객체를 JSON 객체로 변환
+            const itineraryJSON = itinerary.toJSON();
+            response.result = itineraryJSON;
+        } else {
+            response.result = null;
         }
-        else {
-            res.send('empty');
-        }
+        res.status(200).send(response);
     } catch(e) {
         console.log(e);
         next(e);

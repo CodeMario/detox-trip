@@ -5,6 +5,8 @@ const Footprint = require('../models/footprint');
 
 const router = express.Router();
 
+const response = {result : true}
+
 //리뷰 전체 조회
 router.get('/', async (req, res, next) => {
     try {

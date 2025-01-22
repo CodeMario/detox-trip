@@ -28,11 +28,12 @@ router.get('/me', async (req, res, next) => {
     try {
         const user = await User.findOne({
             where : { login_id : req.user.login_id },
-            attributes: ['login_id','nickname','is_active'],
+            attributes: ['login_id','nickname','is_active','is_admin'],
             raw : true
         });
 
-        res.send(user)
+        response.result = user;
+        res.status(200).send(response);
     } catch (e) {
         console.error(e);
         next(e);
