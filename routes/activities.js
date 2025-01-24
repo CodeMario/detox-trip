@@ -57,6 +57,24 @@ router.post('/', async (req, res, next) => {
     }
 });
 
+//목표 달성
+router.post('/success', async (req, res, next) => {
+    try {
+        const {activityId} = req.body;
+        await Activity.update({
+            is_success : true
+        },{
+            where : {id : activityId}
+        });
+
+        res.status(200).send(response);
+
+    } catch(e) {
+        console.log(e);
+        next(e);
+    }
+});
+
 //세부목표 수정
 router.post('/update', async (req, res, next) => {
     try {

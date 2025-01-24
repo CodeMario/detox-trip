@@ -7,6 +7,8 @@ const Footprint = require('../models/footprint');
 
 const router = express.Router();
 
+const response = { result : true }
+
 //전체 여행지 조회
 router.get('/', async (req, res, next) => {
     try {

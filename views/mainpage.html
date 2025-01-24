@@ -123,16 +123,16 @@
     </div>
     <div class="greeting">안녕하세요, 사용자님</div>
     <div class="icons">
-        <div class="icon">👤</div>
-        <div class="icon">🚨</div>
+        <div class="icon" onclick="location.href='/profile.html'">👤</div>
+        <div class="icon" onclick="location.href='/alerts.html'">🚨</div>
     </div>
 </header>
 
 <div class="menu">
-    <button onclick="location.href='page1.html'">여행 일정</button>
-    <button onclick="location.href='page2.html'">여행지 추천</button>
-    <button onclick="location.href='page3.html'">커뮤니티</button>
-    <button onclick="location.href='page4.html'">여행 리뷰</button>
+    <button onclick="window.location.href='/page1.html'">여행 일정</button>
+    <button onclick="window.location.href='/page2.html'">여행지 추천</button>
+    <button onclick="window.location.href='/page3.html'">커뮤니티</button>
+    <button onclick="window.location.href='/page4.html'">여행 리뷰</button>
 </div>
 
 <div class="main-content">
@@ -141,7 +141,7 @@
         <div id="schedule-content" class="no-schedule">계획된 일정이 없습니다.</div>
     </div>
     <div class="goals">
-        <h2>목표</h2>
+        <h2>체크 리스트</h2>
         <ul id="goal-list">
             <li class="no-goals">목표가 없습니다.</li>
         </ul>
@@ -155,64 +155,109 @@
             // 유저 데이터 가져오기
             const userResponse = await fetch('/users/me');
             const userData = await userResponse.json();
+            const user = userData.result;
 
-            // 유저 데이터의 result 속성에서 정보 접근
-            const user = userData.result; // result 객체 추출
-
-            // 계정 비활성화 체크
             if (!user.is_active) {
                 alert('계정이 비활성화되었습니다. 로그인 화면으로 이동합니다.');
                 window.location.href = "/index.html";
                 return;
             }
 
-            // 관리자 여부 체크
             if (user.is_admin) {
                 window.location.href = "/admin.html";
                 return;
             }
 
-            // 유저 닉네임 반영
             const greeting = document.querySelector('.greeting');
             greeting.textContent = `안녕하세요, ${user.nickname}님`;
 
-            // 여행 일정 및 목표 데이터 가져오기
             const itineraryResponse = await fetch('/itineraries');
             const itineraryData = await itineraryResponse.json();
 
-            // 여행 일정 렌더링
             const scheduleContent = document.getElementById('schedule-content');
             const itinerary = itineraryData.result;
+            const activities = itinerary.Activities;
 
             if (itinerary) {
                 scheduleContent.classList.remove('no-schedule');
                 const startDate = new Date(itinerary.start_date).toISOString().split('T')[0];
                 const endDate = new Date(itinerary.end_date).toISOString().split('T')[0];
+                const destination = itinerary.Destination?.region_name || '알 수 없음';
+
                 scheduleContent.innerHTML = `
-                <p><strong>일정:</strong> ${startDate} ~ ${endDate}</p>
-                `;
+                    <p><strong>위치:</strong> ${destination}</p>
+                    <p><strong>일정:</strong> ${startDate} ~ ${endDate}</p>
+                    ${activities && activities.length > 0
+                        ? `<h3>목표</h3>
+                        <ul>
+                        ${activities.map(activity => `
+                            <li>${activity.activity_name} (${activity.target_time}분)</li>
+                        `).join('')}
+                        </ul>`
+                        : '<p>목표가 없습니다.</p>'}`;
             }
 
-            // 목표 렌더링
-            const activities = itinerary.Activities;  // 서버에서 받은 activities 데이터
-            
-            // 목표 렌더링
             const goalList = document.getElementById('goal-list');
-            console.log('Activities data:', activities);
             if (activities && activities.length > 0) {
                 goalList.innerHTML = activities.map(activity => `
-                    <li>
-                        <input type="checkbox">
+                    <li data-id="${activity.id}" class="${activity.is_success ? 'completed' : ''}">
+                        <input type="checkbox" class="goal-checkbox" ${activity.is_success ? 'disabled checked' : ''}>
                         <span>${activity.activity_name} (${activity.target_time}분)</span>
                     </li>
                 `).join('');
+                addCheckboxListeners();
             } else {
                 goalList.innerHTML = '<li class="no-goals">목표가 없습니다.</li>';
             }
+
+            // is_success가 true인 목표에 스타일 적용
+            const completedItems = document.querySelectorAll('li.completed span');
+            completedItems.forEach(item => {
+                item.style.color = 'gray';
+                item.style.textDecoration = 'line-through';
+            });
+
         } catch (error) {
             console.error('데이터 가져오기 오류:', error);
         }
     }
+
+    // 체크박스 클릭 이벤트 추가
+    function addCheckboxListeners() {
+        const checkboxes = document.querySelectorAll('.goal-checkbox');
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('click', async (e) => {
+                const listItem = e.target.closest('li');
+                const activityId = listItem.getAttribute('data-id');
+
+                // POST 요청 보내기
+                try {
+                    const response = await fetch('/activities/success', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ activityId }) // ID 값을 객체로 전송
+                    });
+
+                    if (response.ok) {
+                        // 성공적으로 업데이트되면 UI 수정
+                        e.target.disabled = true;
+                        const textSpan = listItem.querySelector('span');
+                        textSpan.style.color = 'gray';
+                        textSpan.style.textDecoration = 'line-through';
+                    } else {
+                        console.error('업데이트 실패:', await response.text());
+                        alert('업데이트 중 문제가 발생했습니다.');
+                    }
+                } catch (error) {
+                    console.error('서버 오류:', error);
+                    alert('서버와 통신 중 문제가 발생했습니다.');
+                }
+            });
+        });
+    }
+
     fetchData();
 </script>
 

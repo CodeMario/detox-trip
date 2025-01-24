@@ -2,12 +2,13 @@ const express = require('express');
 
 const Itinerary = require('../models/itinerary');
 const Activity = require('../models/activity');
+const Destination = require('../models/destination');
 
 const router = express.Router();
 
 const response = {result : true}
 
-//여행일정 및 세부 목표 조회
+//여행일정 정보 조회
 router.get('/', async (req, res, next) => {
     try {
         const itinerary = await Itinerary.findOne({
@@ -15,6 +16,9 @@ router.get('/', async (req, res, next) => {
             include: [{
                 model: Activity,
                 required: false
+            },{
+                model: Destination,
+                attributes: ['region_name']
             }]
         });
         if (itinerary) {
