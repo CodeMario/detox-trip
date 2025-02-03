@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>DetoxTrip</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 10px;
+            border-bottom: 1px solid #ddd;
+            width: 100%;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background: white;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            color: #144e37;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        .logo img {
+            height: 24px;
+            width: auto;
+            margin-right: 5px;
+        }
+        .container {
+            text-align: center;
+            margin-top: 80px;
+        }
+        .input-group {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+        .input-group input {
+            padding: 5px;
+            width: 200px;
+            margin-right: 5px;
+            cursor: pointer;
+        }
+        .emoji {
+            font-size: 20px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border: 1px solid #ddd;
+            box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
+            width: 300px; /* Adjust width as necessary */
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+
+        .modal-header {
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .modal select,
+        .modal input {
+            padding: 12px;
+            font-size: 16px;
+            box-sizing: border-box;
+            width: 100%; /* Set inputs to full width for location-modal */
+        }
+
+        /* For time-modal specific input fields (hour and minute) */
+        #time-modal input[type="number"] {
+            width: 40%; /* Ensure the inputs are smaller but aligned */
+            display: inline-block; /* Display inputs inline */
+            padding: 8px;
+            font-size: 16px;
+        }
+
+        .modal span {
+            font-size: 24px; /* Make the colon slightly larger */
+            margin: 0 10px; /* Adjust the spacing around the colon */
+            line-height: 40px; /* Vertically center the colon */
+            display: inline-block; /* Make colon inline with inputs */
+        }
+
+        .modal input[type="number"]:nth-child(2) {
+            width: 40%; /* Adjust width of the second input (minute) */
+        }
+
+        .modal button {
+            margin-top: 10px;
+            padding: 8px 15px;
+            font-size: 16px;
+        }
+
+        /* Ensure buttons and inputs in location-modal are consistent and large enough */
+        #location-modal select,
+        #location-modal input {
+            padding: 12px;
+            font-size: 16px;
+            box-sizing: border-box;
+            width: 100%; /* Maintain width for location input */
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <img src="/logo.png" alt="Logo"> DetoxTrip
+        </div>
+    </header>
+    <div class="container">
+        <div class="input-group">
+            <input type="text" id="location" placeholder="여행지를 입력하세요" readonly onclick="openLocationModal()">
+            <span class="emoji">🌐</span>
+        </div>
+        <div class="input-group">
+            <input type="date" id="start-date">
+            <span class="emoji">📆</span>
+        </div>
+        <div class="input-group">
+            <input type="date" id="end-date">
+            <span class="emoji">📆</span>
+        </div>
+        <div class="input-group">
+            <input type="text" id="time" placeholder="목표 시간을 입력하세요" readonly onclick="openTimeModal()">
+            <span class="emoji">⏰</span>
+        </div>
+        
+        <button onclick="saveData()">저장</button>
+        <button onclick="cancel()">취소</button>
+    </div>
+
+    <div id="location-modal" class="modal">
+        <div class="modal-header">여행지 입력</div>
+        <select id="country-select" onchange="loadRegions()">
+            <option value="">국가를 선택하세요</option>
+        </select>
+        <br>
+        <select id="region-select">
+            <option value="">지역을 선택하세요</option>
+        </select>
+        <br>
+        <button id="confirm-location" disabled onclick="confirmLocation()">확인</button>
+        <button onclick="closeLocationModal()">취소</button>
+    </div>
+
+    <div id="time-modal" class="modal">
+        <div class="modal-header">시간 입력</div>
+        <input type="number" id="hour" placeholder="HH" min="0" max="99">
+        <span>:</span>
+        <input type="number" id="minute" placeholder="MM" min="0" max="59">
+        <br>
+        <button onclick="confirmTime()">저장</button>
+        <button onclick="closeTimeModal()">취소</button>
+    </div>
+
+    <script>
+        async function fetchDestinations() {
+            try {
+                const response = await fetch('/destinations');
+                const data = await response.json();
+
+                if (data.result) {
+                    const countries = [...new Set(data.result.map(destination => destination.country_name))];
+                    populateCountrySelect(countries);
+                } else {
+                    console.error("Failed to fetch destinations.");
+                }
+            } catch (error) {
+                console.error("Error fetching destinations:", error);
+            }
+        }
+
+        function populateCountrySelect(countries) {
+            const countrySelect = document.getElementById('country-select');
+            countrySelect.innerHTML = '<option value="">국가를 선택하세요</option>'; // Reset
+
+            countries.forEach(country => {
+                const option = document.createElement('option');
+                option.value = country;
+                option.textContent = country;
+                countrySelect.appendChild(option);
+            });
+        }
+
+        async function loadRegions() {
+            const countrySelect = document.getElementById('country-select');
+            const selectedCountry = countrySelect.value;
+
+            if (!selectedCountry) {
+                document.getElementById('region-select').innerHTML = '<option value="">지역을 선택하세요</option>';
+                return;
+            }
+
+            try {
+                const response = await fetch('/destinations');
+                const data = await response.json();
+
+                if (data.result) {
+                    const regions = data.result.filter(destination => destination.country_name === selectedCountry)
+                                              .map(destination => destination.region_name);
+                    populateRegionSelect([...new Set(regions)]);
+                } else {
+                    console.error("Failed to load regions.");
+                }
+            } catch (error) {
+                console.error("Error loading regions:", error);
+            }
+        }
+
+        function populateRegionSelect(regions) {
+            const regionSelect = document.getElementById('region-select');
+            regionSelect.innerHTML = '<option value="">지역을 선택하세요</option>'; // Reset
+
+            regions.forEach(region => {
+                const option = document.createElement('option');
+                option.value = region;
+                option.textContent = region;
+                regionSelect.appendChild(option);
+            });
+
+            document.getElementById('confirm-location').disabled = !regions.length;
+        }
+
+        function openLocationModal() {
+            document.getElementById('location-modal').style.display = 'block';
+            fetchDestinations(); // Fetch destinations when modal opens
+        }
+
+        function closeLocationModal() {
+            document.getElementById('location-modal').style.display = 'none';
+        }
+
+        function openTimeModal() {
+            document.getElementById('time-modal').style.display = 'block';
+        }
+
+        function closeTimeModal() {
+            document.getElementById('time-modal').style.display = 'none';
+        }
+
+        // Handle confirmLocation (show selected country and region)
+        function confirmLocation() {
+            const countrySelect = document.getElementById('country-select');
+            const regionSelect = document.getElementById('region-select');
+            const locationInput = document.getElementById('location');
+
+            const selectedCountry = countrySelect.value;
+            const selectedRegion = regionSelect.value;
+
+            if (selectedCountry && selectedRegion) {
+                locationInput.value = `${selectedCountry} ${selectedRegion}`;
+                closeLocationModal();
+            }
+        }
+
+        // Handle confirmTime (show selected time in HH:MM format)
+        function confirmTime() {
+            const hourInput = document.getElementById('hour');
+            const minuteInput = document.getElementById('minute');
+            const timeInput = document.getElementById('time');
+
+            const hours = hourInput.value.padStart(2, '0');
+            const minutes = minuteInput.value.padStart(2, '0');
+
+            timeInput.value = `${hours}:${minutes}`;
+            closeTimeModal();
+        }
+
+        // Initialize the modal by fetching the destinations data when the page loads
+        window.onload = fetchDestinations;
+    </script>
+</body>
+</html>

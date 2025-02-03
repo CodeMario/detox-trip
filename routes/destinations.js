@@ -18,7 +18,8 @@ router.get('/', async (req, res, next) => {
             raw : true
         });
 
-        res.send(destination);
+        response.result = destination;
+        res.status(200).send(response);
     } catch (e) {
         console.error(e);
         next(e);
