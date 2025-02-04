@@ -47,7 +47,7 @@ router.post('/', async (req, res, next) => {
             destination_id
         });
 
-        res.send('ok');
+        res.status(200).send(response);
     } catch(e) {
         console.log(e);
         next(e);

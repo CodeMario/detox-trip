@@ -66,7 +66,7 @@
             padding: 20px;
             border: 1px solid #ddd;
             box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
-            width: 300px; /* Adjust width as necessary */
+            width: 300px;
             max-width: 100%;
             box-sizing: border-box;
         }
@@ -83,41 +83,31 @@
             padding: 12px;
             font-size: 16px;
             box-sizing: border-box;
-            width: 100%; /* Set inputs to full width for location-modal */
+            width: 100%;
         }
 
-        /* For time-modal specific input fields (hour and minute) */
         #time-modal input[type="number"] {
-            width: 40%; /* Ensure the inputs are smaller but aligned */
-            display: inline-block; /* Display inputs inline */
+            width: 40%;
+            display: inline-block;
             padding: 8px;
             font-size: 16px;
         }
 
         .modal span {
-            font-size: 24px; /* Make the colon slightly larger */
-            margin: 0 10px; /* Adjust the spacing around the colon */
-            line-height: 40px; /* Vertically center the colon */
-            display: inline-block; /* Make colon inline with inputs */
+            font-size: 24px;
+            margin: 0 10px;
+            line-height: 40px;
+            display: inline-block;
         }
 
         .modal input[type="number"]:nth-child(2) {
-            width: 40%; /* Adjust width of the second input (minute) */
+            width: 40%;
         }
 
         .modal button {
             margin-top: 10px;
             padding: 8px 15px;
             font-size: 16px;
-        }
-
-        /* Ensure buttons and inputs in location-modal are consistent and large enough */
-        #location-modal select,
-        #location-modal input {
-            padding: 12px;
-            font-size: 16px;
-            box-sizing: border-box;
-            width: 100%; /* Maintain width for location input */
         }
     </style>
 </head>
@@ -129,19 +119,19 @@
     </header>
     <div class="container">
         <div class="input-group">
-            <input type="text" id="location" placeholder="여행지를 입력하세요" readonly onclick="openLocationModal()">
+            <input type="text" id="location" placeholder="여행지를 입력하세요" readonly onclick="openLocationModal()" required>
             <span class="emoji">🌐</span>
         </div>
         <div class="input-group">
-            <input type="date" id="start-date">
+            <input type="date" id="start-date" required>
             <span class="emoji">📆</span>
         </div>
         <div class="input-group">
-            <input type="date" id="end-date">
+            <input type="date" id="end-date" required>
             <span class="emoji">📆</span>
         </div>
         <div class="input-group">
-            <input type="text" id="time" placeholder="목표 시간을 입력하세요" readonly onclick="openTimeModal()">
+            <input type="text" id="time" placeholder="목표 시간을 입력하세요" readonly onclick="openTimeModal()" required>
             <span class="emoji">⏰</span>
         </div>
         
@@ -192,7 +182,7 @@
 
         function populateCountrySelect(countries) {
             const countrySelect = document.getElementById('country-select');
-            countrySelect.innerHTML = '<option value="">국가를 선택하세요</option>'; // Reset
+            countrySelect.innerHTML = '<option value="">국가를 선택하세요</option>';
 
             countries.forEach(country => {
                 const option = document.createElement('option');
@@ -216,9 +206,11 @@
                 const data = await response.json();
 
                 if (data.result) {
-                    const regions = data.result.filter(destination => destination.country_name === selectedCountry)
-                                              .map(destination => destination.region_name);
-                    populateRegionSelect([...new Set(regions)]);
+                    const regions = data.result
+                        .filter(destination => destination.country_name === selectedCountry)
+                        .map(destination => ({ id: destination.id, region_name: destination.region_name }));
+
+                    populateRegionSelect(regions);
                 } else {
                     console.error("Failed to load regions.");
                 }
@@ -229,21 +221,22 @@
 
         function populateRegionSelect(regions) {
             const regionSelect = document.getElementById('region-select');
-            regionSelect.innerHTML = '<option value="">지역을 선택하세요</option>'; // Reset
+            regionSelect.innerHTML = '<option value="">지역을 선택하세요</option>';
 
             regions.forEach(region => {
                 const option = document.createElement('option');
-                option.value = region;
-                option.textContent = region;
+                option.value = region.region_name;
+                option.textContent = region.region_name;
+                option.dataset.id = region.id;
                 regionSelect.appendChild(option);
             });
 
-            document.getElementById('confirm-location').disabled = !regions.length;
+            document.getElementById('confirm-location').disabled = regions.length === 0;
         }
 
         function openLocationModal() {
             document.getElementById('location-modal').style.display = 'block';
-            fetchDestinations(); // Fetch destinations when modal opens
+            fetchDestinations();
         }
 
         function closeLocationModal() {
@@ -258,7 +251,6 @@
             document.getElementById('time-modal').style.display = 'none';
         }
 
-        // Handle confirmLocation (show selected country and region)
         function confirmLocation() {
             const countrySelect = document.getElementById('country-select');
             const regionSelect = document.getElementById('region-select');
@@ -266,14 +258,17 @@
 
             const selectedCountry = countrySelect.value;
             const selectedRegion = regionSelect.value;
+            const locationId = regionSelect.options[regionSelect.selectedIndex]?.dataset.id;
 
-            if (selectedCountry && selectedRegion) {
+            if (selectedCountry && selectedRegion && locationId) {
                 locationInput.value = `${selectedCountry} ${selectedRegion}`;
+                locationInput.dataset.id = locationId;
                 closeLocationModal();
+            } else {
+                alert("국가와 지역을 올바르게 선택해주세요.");
             }
         }
 
-        // Handle confirmTime (show selected time in HH:MM format)
         function confirmTime() {
             const hourInput = document.getElementById('hour');
             const minuteInput = document.getElementById('minute');
@@ -286,7 +281,52 @@
             closeTimeModal();
         }
 
-        // Initialize the modal by fetching the destinations data when the page loads
+        async function saveData() {
+            const locationSelect = document.getElementById('region-select');
+            const locationId = locationSelect.options[locationSelect.selectedIndex]?.dataset.id;
+            const startDate = document.getElementById('start-date').value.trim();
+            const endDate = document.getElementById('end-date').value.trim();
+            const hour = parseInt(document.getElementById('hour').value, 10) || 0;
+            const minute = parseInt(document.getElementById('minute').value, 10) || 0;
+            const totalMinutes = hour * 60 + minute;
+
+            console.log(locationId, startDate, endDate, totalMinutes);
+            if (!locationId || !startDate || !endDate || totalMinutes <= 0) {
+                alert("모든 항목을 올바르게 입력해주세요.");
+                return;
+            }
+
+            const requestData = {
+                destination_id: locationId,
+                start_date: startDate,
+                end_date: endDate,
+                total_time: totalMinutes
+            };
+
+            try {
+                const response = await fetch('/itineraries', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestData)
+                });
+
+                const result = await response.json();
+                if (result.result) {
+                    alert("여행 일정이 저장되었습니다!");
+                    window.location.href = "/main.html";
+                } else {
+                    alert("저장에 실패했습니다. 다시 시도해주세요.");
+                }
+            } catch (error) {
+                console.error("Error saving data:", error);
+                alert("네트워크 오류가 발생했습니다.");
+            }
+        }
+
+        function cancel() {
+            window.location.href = "/main.html";
+        }
+
         window.onload = fetchDestinations;
     </script>
 </body>
