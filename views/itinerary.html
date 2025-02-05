@@ -37,9 +37,13 @@
             width: auto;
             margin-right: 5px;
         }
+        .page-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
         .container {
             text-align: center;
-            margin-top: 80px;
         }
         .input-group {
             display: flex;
@@ -117,6 +121,7 @@
             <img src="/logo.png" alt="Logo"> DetoxTrip
         </div>
     </header>
+    <div class="page-title" id="page-title"></div>
     <div class="container">
         <div class="input-group">
             <input type="text" id="location" placeholder="여행지를 입력하세요" readonly onclick="openLocationModal()" required>
@@ -164,6 +169,46 @@
     </div>
 
     <script>
+        async function checkItinerary() {
+            try {
+                const response = await fetch('/itineraries');
+                const data = await response.json();
+                const pageTitle = document.getElementById('page-title');
+
+                console.log(data.result);
+
+                if (data.result) {
+                    pageTitle.textContent = "여행일정 수정";
+
+                    // 기존 값이 존재하는 경우, 입력 필드에 값 설정
+                    const locationInput = document.getElementById('location');
+                    const startDateInput = document.getElementById('start-date');
+                    const endDateInput = document.getElementById('end-date');
+                    const timeInput = document.getElementById('time');
+
+                    // country_name과 region_name을 띄어쓰기로 연결하여 입력
+                    const country = data.result.Destination?.country_name || "";
+                    const region = data.result.Destination?.region_name || "";
+                    locationInput.value = `${country} ${region}`;
+                    
+                    // start_date와 end_date 설정
+                    startDateInput.value = data.result.start_date || "";
+                    endDateInput.value = data.result.end_date || "";
+
+                    // total_time을 HH:MM 형식으로 변환하여 설정
+                    const totalMinutes = data.result.total_time || 0;
+                    const hours = String(Math.floor(totalMinutes / 60)).padStart(2, '0');
+                    const minutes = String(totalMinutes % 60).padStart(2, '0');
+                    timeInput.value = `${hours}:${minutes}`;
+                } else {
+                    pageTitle.textContent = "여행일정 등록";
+                }
+            } catch (error) {
+                console.error("Error checking itinerary:", error);
+                document.getElementById('page-title').textContent = "오류 발생";
+            }
+        }
+
         async function fetchDestinations() {
             try {
                 const response = await fetch('/destinations');
@@ -282,37 +327,34 @@
         }
 
         async function saveData() {
-            const locationSelect = document.getElementById('region-select');
-            const locationId = locationSelect.options[locationSelect.selectedIndex]?.dataset.id;
+            const locationInput = document.getElementById('location');
+            const locationId = locationInput.dataset.id;
             const startDate = document.getElementById('start-date').value.trim();
             const endDate = document.getElementById('end-date').value.trim();
             const hour = parseInt(document.getElementById('hour').value, 10) || 0;
             const minute = parseInt(document.getElementById('minute').value, 10) || 0;
             const totalMinutes = hour * 60 + minute;
 
-            console.log(locationId, startDate, endDate, totalMinutes);
-            if (!locationId || !startDate || !endDate || totalMinutes <= 0) {
-                alert("모든 항목을 올바르게 입력해주세요.");
-                return;
-            }
+            // 일정이 이미 있는지 확인 (페이지 제목이 "여행일정 수정"인지 체크)
+            const isUpdating = document.getElementById('page-title').textContent === "여행일정 수정";
 
             const requestData = {
-                destination_id: locationId,
-                start_date: startDate,
-                end_date: endDate,
-                total_time: totalMinutes
+                destination_id: locationId || null,
+                start_date: startDate || null,
+                end_date: endDate || null,
+                total_time: totalMinutes || null
             };
 
             try {
-                const response = await fetch('/itineraries', {
+                const response = await fetch(isUpdating ? '/itineraries/update' : '/itineraries', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(requestData)
                 });
 
                 const result = await response.json();
-                if (result.result) {
-                    alert("여행 일정이 저장되었습니다!");
+                if (result.result == true) {
+                    alert(isUpdating ? "여행 일정이 수정되었습니다!" : "여행 일정이 저장되었습니다!");
                     window.location.href = "/main.html";
                 } else {
                     alert("저장에 실패했습니다. 다시 시도해주세요.");
@@ -327,7 +369,10 @@
             window.location.href = "/main.html";
         }
 
-        window.onload = fetchDestinations;
+        window.onload = function () {
+            checkItinerary();
+            fetchDestinations();
+        };
     </script>
 </body>
 </html>

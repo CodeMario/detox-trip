@@ -18,12 +18,14 @@ router.get('/', async (req, res, next) => {
                 required: false
             },{
                 model: Destination,
-                attributes: ['region_name']
+                attributes: ['region_name','country_name']
             }]
         });
         if (itinerary) {
             // Sequelize 객체를 JSON 객체로 변환
             const itineraryJSON = itinerary.toJSON();
+            itineraryJSON.start_date = new Date(itineraryJSON.start_date).toISOString().split('T')[0];
+            itineraryJSON.end_date = new Date(itineraryJSON.end_date).toISOString().split('T')[0];
             response.result = itineraryJSON;
         } else {
             response.result = null;
@@ -47,6 +49,7 @@ router.post('/', async (req, res, next) => {
             destination_id
         });
 
+        response.result = true;
         res.status(200).send(response);
     } catch(e) {
         console.log(e);
@@ -57,9 +60,9 @@ router.post('/', async (req, res, next) => {
 //여행일정 수정
 router.post('/update', async (req, res, next) => {
     try {
-        const {itinerary_id, destination_id, start_date, end_date, total_time} = req.body;
+        const {destination_id, start_date, end_date, total_time} = req.body;
         const beforeItinerary = await Itinerary.findOne({
-            where : { id : itinerary_id },
+            where : { user_id : req.user.id },
             attributes : [ "start_date", "end_date", "total_time", "destination_id" ]
         });
         
@@ -69,10 +72,11 @@ router.post('/update', async (req, res, next) => {
             total_time : total_time ? total_time : beforeItinerary.total_time,
             destination_id : destination_id ? destination_id : beforeItinerary.destination_id
         }, {
-            where : {id : itinerary_id}
+            where : {user_id : req.user.id}
         });
 
-        res.send('ok');
+        response.result = true;
+        res.status(200).send(response);
     } catch(e) {
         console.log(e);
         next(e);

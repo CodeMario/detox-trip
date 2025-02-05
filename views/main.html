@@ -175,8 +175,8 @@
 
             if (itinerary) {
                 scheduleContent.classList.remove('no-schedule');
-                const startDate = new Date(itinerary.start_date).toISOString().split('T')[0];
-                const endDate = new Date(itinerary.end_date).toISOString().split('T')[0];
+                const startDate = itinerary.start_date;
+                const endDate = itinerary.end_date;
                 const destination = itinerary.Destination?.region_name || '알 수 없음';
 
                 scheduleContent.innerHTML = `
