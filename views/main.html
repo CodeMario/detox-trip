@@ -108,6 +108,56 @@
         .goals input[type="checkbox"] {
             margin-right: 10px;
         }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+        }
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            border-radius: 10px;
+        }
+        .modal-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .modal-content .menu {
+            display: block;
+            width: 100%;
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #007BFF;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            text-align: center;
+            margin: 10px 0;
+        }
+
+        .modal-content .menu:hover {
+            background-color: #0056b3;
+        }
     </style>
 </head>
 <body>
@@ -124,7 +174,7 @@
 </header>
 
 <div class="menu">
-    <button onclick="window.location.href='/itinerary.html'">여행 일정</button>
+    <button id="scheduleButton">여행 일정</button>
     <button onclick="window.location.href='/page2.html'">여행지 추천</button>
     <button onclick="window.location.href='/page3.html'">커뮤니티</button>
     <button onclick="window.location.href='/page4.html'">여행 리뷰</button>
@@ -140,6 +190,16 @@
         <ul id="goal-list">
             <li class="no-goals">목표가 없습니다.</li>
         </ul>
+    </div>
+</div>
+
+<div id="scheduleModal" class="modal">
+    <div class="modal-content">
+        <h3 class="modal-title">여행 일정 관리</h3>
+        <div class="modal-buttons">
+            <button id="itineraryButton" class="menu">일정 관리</button>
+            <button id="activityButton" class="menu">목표 관리</button>
+        </div>
     </div>
 </div>
 
@@ -252,6 +312,24 @@
             });
         });
     }
+
+    document.getElementById("scheduleButton").addEventListener("click", function() {
+    document.getElementById("scheduleModal").style.display = "block";
+    });
+
+    document.getElementById("itineraryButton").addEventListener("click", function() {
+    window.location.href = "/itinerary.html";
+    });
+
+    document.getElementById("activityButton").addEventListener("click", function() {
+    window.location.href = "/activity.html";
+    });
+
+    document.getElementById("scheduleModal").addEventListener("click", function(event) {
+    if (event.target === document.getElementById("scheduleModal")) {
+        document.getElementById("scheduleModal").style.display = "none";
+    }
+    });
 
     fetchData();
 </script>

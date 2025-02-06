@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>DetoxTrip</title>
+    <style>
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 10px;
+            border-bottom: 1px solid #ddd;
+            width: 100%;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background: white;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            color: #144e37;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        .logo img {
+            height: 24px;
+            width: auto;
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <img src="/logo.png" alt="Logo"> DetoxTrip
+        </div>
+    </header>
+    <script>
+        async function fetchData() {
+            try {
+                const itineraryResponse = await fetch('/itineraries');
+                const itineraryData = await itineraryResponse.json();
+
+                const activities = itinerary.Activities;
+
+            } catch (error) {
+            console.error('데이터 가져오기 오류:', error)
+        }
+    }
+    fetchData();
+    </script>
+</body>
+</html>
