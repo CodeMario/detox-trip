@@ -11,12 +11,17 @@ const response = {result : true}
 //세부목표 조회
 router.get('/', async (req, res, next) => {
     try {
-        const activity = await Activity.findAll({
+        const itinerary = await Itinerary.findOne({
             where : {user_id : req.user.id},
+            attributes : ['id']
+        });
+        const activity = await Activity.findAll({
+            where : {itinerary_id : itinerary.id},
             raw : true
         });
 
-        res.send(activity);
+        response.result = activity;
+        res.status(200).send(activity);
     } catch(e) {
         console.log(e);
         next(e);

@@ -354,8 +354,14 @@
 
                 const result = await response.json();
                 if (result.result == true) {
-                    alert(isUpdating ? "여행 일정이 수정되었습니다!" : "여행 일정이 저장되었습니다!");
-                    window.location.href = "/main.html";
+                    if (isUpdating) {
+                        alert("여행 일정이 수정되었습니다!");
+                        window.location.href = "/main.html";
+                    }
+                    else {
+                        alert("여행 일정이 저장되었습니다!");
+                        window.location.href = "/activiy.html";
+                    }
                 } else {
                     alert("저장에 실패했습니다. 다시 시도해주세요.");
                 }

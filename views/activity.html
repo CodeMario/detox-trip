@@ -1,9 +1,17 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
     <title>DetoxTrip</title>
     <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
         header {
             display: flex;
             justify-content: space-between;
@@ -15,6 +23,7 @@
             top: 0;
             left: 0;
             background: white;
+            z-index: 1000;
         }
         .logo {
             display: flex;
@@ -28,6 +37,68 @@
             width: auto;
             margin-right: 5px;
         }
+        .container {
+            display: flex;
+            width: 80%;
+            margin-top: 70px;
+            justify-content: space-between;
+        }
+        .left-panel, .right-panel {
+            width: 45%;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            background: #f9f9f9;
+        }
+        h2 {
+            margin-top: 0;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            padding: 10px;
+            background: white;
+            margin-bottom: 5px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        button {
+            padding: 10px;
+            margin-top: 10px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .add-btn {
+            background: #007BFF;
+            color: white;
+            width: 100%;
+        }
+        input {
+            width: calc(100% - 20px);
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .button-group {
+            display: flex;
+            justify-content: space-between;
+        }
+        .save-btn {
+            background: #007BFF;
+            color: white;
+            flex: 1;
+            margin-right: 5px;
+        }
+        .cancel-btn {
+            background: #ccc;
+            color: black;
+            flex: 1;
+            margin-left: 5px;
+        }
     </style>
 </head>
 <body>
@@ -36,19 +107,47 @@
             <img src="/logo.png" alt="Logo"> DetoxTrip
         </div>
     </header>
+
+    <div class="container">
+        <!-- 왼쪽: 목표 목록 -->
+        <div class="left-panel">
+            <h2>여행 목표</h2>
+            <ul id="activity-list"></ul>
+            <button class="add-btn">목표 추가</button>
+        </div>
+
+        <!-- 오른쪽: 목표 입력 폼 -->
+        <div class="right-panel">
+            <h2>목표 입력</h2>
+            <input type="text" id="activity-name" placeholder="활동명 입력">
+            <input type="text" id="activity-time" placeholder="목표 시간 입력">
+            <div class="button-group">
+                <button class="save-btn">저장</button>
+                <button class="cancel-btn">취소</button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        async function fetchData() {
+        async function fetchActivities() {
             try {
-                const itineraryResponse = await fetch('/itineraries');
-                const itineraryData = await itineraryResponse.json();
+                const response = await fetch('/activities');
+                const activities = await response.json();
 
-                const activities = itinerary.Activities;
+                const activityList = document.getElementById('activity-list');
+                activityList.innerHTML = ''; // 기존 목록 초기화
 
+                activities.forEach(activity => {
+                    const li = document.createElement('li');
+                    li.textContent = activity.name || '이름 없음';
+                    activityList.appendChild(li);
+                });
             } catch (error) {
-            console.error('데이터 가져오기 오류:', error)
+                console.error('데이터 가져오기 오류:', error);
+            }
         }
-    }
-    fetchData();
+
+        fetchActivities();
     </script>
 </body>
 </html>
