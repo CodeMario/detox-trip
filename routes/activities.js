@@ -8,20 +8,49 @@ const router = express.Router();
 
 const response = {result : true}
 
+async function checkTimeAvailability(user_id, target_time) {
+    const itinerary = await Itinerary.findOne({
+        where : {user_id},
+        attributes : ['id']
+    });
+
+    const total_time = await Activity.findAll({
+        where : {itinerary_id : itinerary.id},
+        attributes : [[Activity.sequelize.fn("SUM", Activity.sequelize.col("target_time")), "time"]],
+        group : ["itinerary_id"],
+        raw:true
+    });
+    const limit_time = await Itinerary.findOne({
+        where : {id : itinerary.id},
+        attributes : ["total_time"],
+        raw:true
+    });
+
+    if (total_time) {
+        if (limit_time.total_time - Number(total_time[0].time) - target_time< 0) {
+            return false;
+        }
+    }
+    return itinerary.id;
+}
+
 //세부목표 조회
 router.get('/', async (req, res, next) => {
     try {
         const itinerary = await Itinerary.findOne({
             where : {user_id : req.user.id},
-            attributes : ['id']
+            attributes : ['id','total_time']
         });
         const activity = await Activity.findAll({
             where : {itinerary_id : itinerary.id},
             raw : true
         });
 
-        response.result = activity;
-        res.status(200).send(activity);
+        response.result = {
+            activities: activity,
+            total_time: itinerary.total_time
+        };
+        res.status(200).send(response);
     } catch(e) {
         console.log(e);
         next(e);
@@ -31,31 +60,22 @@ router.get('/', async (req, res, next) => {
 //세부목표 등록
 router.post('/', async (req, res, next) => {
     try {
-        const {itinerary_id, activity_name, target_time} = req.body;
-        const total_time = await Activity.findAll({
-            attributes : [[Activity.sequelize.fn("SUM", Activity.sequelize.col("target_time")), "time"]],
-            group : ["itinerary_id"],
-            raw:true
-        });
-        const limit_time = await Itinerary.findOne({
-            where : {id : itinerary_id},
-            attributes : ["total_time"],
-            raw:true
-        });
+        const {activity_name, target_time} = req.body;
 
-        if (total_time) {
-            if (limit_time.total_time - Number(total_time[0].time) < 0) {
-                res.send('목표시간 초과');
-            }
+        const temp = await checkTimeAvailability(req.user.id, target_time);
+        if (temp) {
+            await Activity.create({
+                activity_name,
+                target_time,
+                itinerary_id : temp
+            });
+    
+            response.result = "done"
         }
-
-        await Activity.create({
-            activity_name,
-            target_time,
-            itinerary_id
-        });
-        res.send("ok");
-
+        else {
+            response.result = "exceed total time"
+        }
+        res.status(200).send(response);
     } catch(e) {
         console.log(e);
         next(e);
@@ -72,6 +92,7 @@ router.post('/success', async (req, res, next) => {
             where : {id : activityId}
         });
 
+        response.result = true
         res.status(200).send(response);
 
     } catch(e) {
@@ -85,14 +106,21 @@ router.post('/update', async (req, res, next) => {
     try {
         const {activity_id, activity_name, target_time} = req.body
 
-        await Activity.update({
-            activity_name,
-            target_time
-        }, {
-            where : {id : activity_id}
-        });
+        const temp = await checkTimeAvailability(req.user.id, target_time)
+        if (temp) {
+            await Activity.update({
+                activity_name,
+                target_time
+            }, {
+                where : {id : activity_id}
+            });
 
-        res.send('ok');
+            response.result = "done"
+        }
+        else {
+            response.result = "exceed total time"
+        }
+        res.status(200).send(response);
     } catch(e) {
         console.log(e);
         next(e);

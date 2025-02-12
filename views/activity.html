@@ -106,7 +106,7 @@
             flex: 1;
             margin-right: 5px;
         }
-        .cancel-btn {
+        .leave-btn {
             background: #ccc;
             color: black;
             flex: 1;
@@ -164,6 +164,7 @@
         <!-- 왼쪽: 목표 목록 -->
         <div class="left-panel">
             <h2>여행 목표</h2>
+            <p id="total-time">총 목표 시간: 0시간 0분</p>
             <ul id="activity-list"></ul>
             <button class="add-btn">목표 추가</button>
         </div>
@@ -175,7 +176,7 @@
             <input type="text" id="activity-time" placeholder="목표 시간 입력" readonly>
             <div class="button-group">
                 <button class="save-btn">저장</button>
-                <button class="cancel-btn">취소</button>
+                <button class="leave-btn">나가기</button>
             </div>
         </div>
     </div>
@@ -191,7 +192,7 @@
             </div>
             <div class="button-group">
                 <button class="save-btn" id="save-time-btn">확인</button>
-                <button class="cancel-btn" id="cancel-time-btn">취소</button>
+                <button class="leave-btn" id="cancel-time-btn">취소</button>
             </div>
         </div>
     </div>
@@ -202,32 +203,44 @@
         async function fetchActivities() {
             try {
                 const response = await fetch('/activities');
-                const activities = await response.json();
-                
+                const data = await response.json();
+
+                if (!data.result || !data.result.activities) {
+                    console.error('활동 데이터를 가져올 수 없습니다.');
+                    return;
+                }
+
                 const activityList = document.getElementById('activity-list');
                 activityList.innerHTML = '';
-                
-                activities.forEach(activity => {
+
+                // 총 목표 시간 표시
+                const totalTimeElement = document.getElementById('total-time');
+                const hours = Math.floor(data.result.total_time / 60);
+                const minutes = data.result.total_time % 60;
+                totalTimeElement.textContent = `총 목표 시간: ${hours}시간 ${minutes}분`;
+
+                // 활동 목록 표시
+                data.result.activities.forEach(activity => {
                     const li = document.createElement('li');
                     const nameSpan = document.createElement('span');
                     nameSpan.classList.add('activity-name');
                     nameSpan.textContent = activity.activity_name;
-                    
+
                     const timeSpan = document.createElement('span');
                     timeSpan.classList.add('activity-time');
-                    const hours = Math.floor(activity.target_time / 60);
-                    const minutes = activity.target_time % 60;
-                    timeSpan.textContent = `${hours}시간 ${minutes}분`;
-                    
+                    const activityHours = Math.floor(activity.target_time / 60);
+                    const activityMinutes = activity.target_time % 60;
+                    timeSpan.textContent = `${activityHours}시간 ${activityMinutes}분`;
+
                     li.appendChild(nameSpan);
                     li.appendChild(timeSpan);
-                    
+
                     li.addEventListener('click', () => {
                         document.getElementById('activity-name').value = activity.activity_name;
-                        document.getElementById('activity-time').value = `${hours}시간 ${minutes}분`;
+                        document.getElementById('activity-time').value = `${activityHours}시간 ${activityMinutes}분`;
                         selectedActivityId = activity.id;
                     });
-                    
+
                     activityList.appendChild(li);
                 });
             } catch (error) {
@@ -270,6 +283,45 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             fetchActivities();
+        });
+
+        document.querySelector('.save-btn').addEventListener('click', async () => {
+            const activityName = document.getElementById('activity-name').value;
+            const activityTime = document.getElementById('activity-time').value;
+            
+            if (!activityName || !activityTime) {
+                alert('활동명과 목표 시간을 입력하세요.');
+                return;
+            }
+
+            const [hours, minutes] = activityTime.match(/\d+/g).map(Number);
+            const targetTime = hours * 60 + minutes;
+
+            const url = selectedActivityId ? '/activities/update' : '/activities';
+            const payload = selectedActivityId 
+                ? { activity_id: selectedActivityId, activity_name: activityName, target_time: targetTime }
+                : { activity_name: activityName, target_time: targetTime };
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+                
+                if (result.result === "exceed total time") {
+                    alert("총 시간을 초과하였습니다.");
+                } else if (result.result === "done") {
+                    location.reload(); // 목록 갱신
+                }
+            } catch (error) {
+                console.error('저장 오류:', error);
+            }
+        });
+
+        document.querySelector('.leave-btn').addEventListener('click', () => {
+            window.location.href = 'main.html';
         });
     </script>
 </body>
