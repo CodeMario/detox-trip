@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>DetoxTrip</title>
+    <style>
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            border-bottom: 1px solid #ddd;
+            width: 100%;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background: white;
+            z-index: 1000;
+            box-sizing: border-box;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            color: #144e37;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        .logo img {
+            height: 24px;
+            width: auto;
+            margin-right: 5px;
+        }
+        .nav-buttons {
+            display: flex;
+            gap: 5px; /* 버튼 간격 줄이기 */
+            flex-wrap: wrap; /* 화면 작을 때 버튼이 줄바꿈되도록 설정 */
+        }
+        .nav-buttons a {
+            text-decoration: none;
+            color: #144e37;
+            font-size: 16px;
+            padding: 8px 10px; /* 버튼 내부 패딩 조정 */
+            border-radius: 5px;
+            transition: background 0.3s, color 0.3s;
+            white-space: nowrap; /* 버튼이 한 줄 유지되도록 설정 */
+        }
+        .nav-buttons a:hover {
+            background: #144e37;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <img src="/logo.png" alt="Logo"> 관리자 페이지
+        </div>
+        <nav class="nav-buttons">
+            <a href="/dashboard.html">대시보드</a>
+            <a href="/user-management.html">사용자 관리</a>
+            <a href="/destination-management.html">여행지 관리</a>
+        </nav>
+    </header>
+</body>
+</html>

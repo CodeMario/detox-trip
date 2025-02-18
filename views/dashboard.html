@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>DetoxTrip</title>
+    <style>
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            border-bottom: 1px solid #ddd;
+            width: 100%;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background: white;
+            z-index: 1000;
+            box-sizing: border-box;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            color: #144e37;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        .logo img {
+            height: 24px;
+            width: auto;
+            margin-right: 5px;
+        }
+        .nav-buttons {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+        .nav-buttons a {
+            text-decoration: none;
+            color: #144e37;
+            font-size: 16px;
+            padding: 8px 10px;
+            border-radius: 5px;
+            transition: background 0.3s, color 0.3s;
+            white-space: nowrap;
+        }
+        .nav-buttons a:hover {
+            background: #144e37;
+            color: white;
+        }
+        /* 사용자 & 여행지 카운트 박스 스타일 */
+        .stats-box {
+            position: absolute;
+            top: 70px; /* 헤더와 네비를 가리지 않도록 아래로 이동 */
+            left: 20px; /* 왼쪽 정렬 */
+            border: 2px solid #144e37;
+            padding: 15px;
+            border-radius: 10px;
+            background: white;
+            font-size: 16px;
+            font-weight: bold;
+            min-width: 220px;
+            text-align: left;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <img src="/logo.png" alt="Logo"> 관리자 페이지
+        </div>
+        <nav class="nav-buttons">
+            <a href="/dashboard.html">대시보드</a>
+            <a href="/user-management.html">사용자 관리</a>
+            <a href="/destination-management.html">여행지 관리</a>
+        </nav>
+    </header>
+
+    <!-- 사용자 & 여행지 카운트 표시 박스 -->
+    <div class="stats-box" id="statsBox">
+        데이터 로딩 중...
+    </div>
+
+    <script>
+        // 데이터를 가져와서 업데이트하는 함수
+        async function fetchData() {
+            try {
+                // users API 요청
+                const usersResponse = await fetch('/users');
+                const usersData = await usersResponse.json();
+                
+                // 전체 사용자 수
+                const totalUsers = usersData.length;
+                // 활성화, 비활성화 사용자 수
+                const activeUsers = usersData.filter(user => user.is_active).length;
+                const inactiveUsers = totalUsers - activeUsers;
+
+                // destinations API 요청
+                const destinationsResponse = await fetch('/destinations');
+                const destinationsData = await destinationsResponse.json();
+                
+                // 여행지 개수 확인 (undefined 방지)
+                const totalDestinations = Array.isArray(destinationsData) ? destinationsData.length : 0;
+
+                // UI 업데이트
+                document.getElementById('statsBox').innerHTML = `
+                    총 사용자 : ${totalUsers}명<br>
+                    활성화 : ${activeUsers}명<br>
+                    비 활성화 : ${inactiveUsers}명<br>
+                    등록된 여행지 : ${totalDestinations}개
+                `;
+
+            } catch (error) {
+                console.error('데이터를 불러오는 중 오류 발생:', error);
+                document.getElementById('statsBox').innerText = "데이터 로딩 실패";
+            }
+        }
+
+        // 페이지 로드 시 데이터 가져오기
+        window.onload = fetchData;
+    </script>
+</body>
+</html>
