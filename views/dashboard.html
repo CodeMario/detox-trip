@@ -90,10 +90,10 @@
                 const usersResponse = await fetch('/users');
                 const usersData = await usersResponse.json();
                 
-                // 전체 사용자 수
-                const totalUsers = usersData.length;
-                // 활성화, 비활성화 사용자 수
-                const activeUsers = usersData.filter(user => user.is_active).length;
+                // usersData.result가 배열인지 확인 후 길이 측정
+                const totalUsers = Array.isArray(usersData.result) ? usersData.result.length : 0;
+                const activeUsers = Array.isArray(usersData.result) 
+                    ? usersData.result.filter(user => user.is_active).length : 0;
                 const inactiveUsers = totalUsers - activeUsers;
 
                 // destinations API 요청
@@ -101,7 +101,7 @@
                 const destinationsData = await destinationsResponse.json();
                 
                 // 여행지 개수 확인 (undefined 방지)
-                const totalDestinations = Array.isArray(destinationsData) ? destinationsData.length : 0;
+                const totalDestinations = Array.isArray(destinationsData.result) ? destinationsData.result.length : 0;
 
                 // UI 업데이트
                 document.getElementById('statsBox').innerHTML = `

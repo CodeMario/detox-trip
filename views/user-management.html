@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>DetoxTrip</title>
+    <title>DetoxTrip - 사용자 관리</title>
     <style>
         header {
             display: flex;
@@ -32,21 +32,115 @@
         }
         .nav-buttons {
             display: flex;
-            gap: 5px; /* 버튼 간격 줄이기 */
-            flex-wrap: wrap; /* 화면 작을 때 버튼이 줄바꿈되도록 설정 */
+            gap: 5px;
+            flex-wrap: wrap;
         }
         .nav-buttons a {
             text-decoration: none;
             color: #144e37;
             font-size: 16px;
-            padding: 8px 10px; /* 버튼 내부 패딩 조정 */
+            padding: 8px 10px;
             border-radius: 5px;
             transition: background 0.3s, color 0.3s;
-            white-space: nowrap; /* 버튼이 한 줄 유지되도록 설정 */
+            white-space: nowrap;
         }
         .nav-buttons a:hover {
             background: #144e37;
             color: white;
+        }
+        .container {
+            margin-top: 60px;
+            padding: 20px;
+            height: 80vh;
+            overflow-y: auto;
+            position: relative;  /* 자식 요소의 절대 위치 기준이 됨 */
+            display: flex;
+            flex-direction: column;  /* 세로 방향으로 정렬 */
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background: #f4f4f4;
+        }
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 34px;
+            height: 20px;
+        }
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 20px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #4CAF50;
+        }
+        input:checked + .slider:before {
+            transform: translateX(14px);
+        }
+
+        /* 검색 필터 스타일 */
+        .search-container {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            margin-bottom: 10px;
+            margin-right: 0;
+            z-index: 10;
+            position: relative; /* 부모 컨테이너 내에서 상대적 위치 지정 */
+        }
+
+        .search-select, .search-input, .search-button {
+            padding: 5px 10px;
+            margin-left: 10px;
+        }
+
+        .search-button {
+            cursor: pointer;
+            background-color: #144e37;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+
+        .search-button:hover {
+            background-color: #2c7a56;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
         }
     </style>
 </head>
@@ -61,5 +155,89 @@
             <a href="/destination-management.html">여행지 관리</a>
         </nav>
     </header>
+
+    <div class="container" id="userContainer">
+        <!-- 검색 필터 -->
+        <div class="search-container">
+            <select id="searchCriteria" class="search-select">
+                <option value="login_id">아이디</option>
+                <option value="nickname">닉네임</option>
+            </select>
+            <input type="text" id="searchInput" class="search-input" placeholder="검색어 입력">
+            <button id="searchButton" class="search-button">검색</button>
+        </div>
+    
+        <!-- 테이블을 감싸는 컨테이너 -->
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>아이디</th>
+                        <th>닉네임</th>
+                        <th>계정 상태</th>
+                        <th>활성화</th>
+                    </tr>
+                </thead>
+                <tbody id="userTableBody">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        let page = 1;
+        let loading = false;
+
+        async function loadUsers(searchTerm = "", searchCriteria = "login_id") {
+            if (loading) return;
+            loading = true;
+            try {
+                const response = await fetch(`/users?page=${page}`);
+                const data = await response.json();
+                const users = data.result;
+                
+                const tableBody = document.getElementById("userTableBody");
+                tableBody.innerHTML = ""; // 기존 테이블 내용 초기화
+
+                // 필터링 처리
+                const filteredUsers = users.filter(user => {
+                    return user[searchCriteria].toLowerCase().includes(searchTerm.toLowerCase());
+                });
+
+                filteredUsers.forEach(user => {
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+                        <td>${user.login_id}</td>
+                        <td>${user.nickname}</td>
+                        <td class="status-text">${user.is_active ? "활성화" : "비활성화"}</td>
+                        <td>
+                            <label class="switch">
+                                <input type="checkbox" ${user.is_active ? "checked" : ""} data-id="${user.login_id}">
+                                <span class="slider"></span>
+                            </label>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+
+                page++;  // 페이지 증가
+            } catch (error) {
+                console.error("사용자 데이터를 불러오는 중 오류 발생:", error);
+            }
+            loading = false;
+        }
+
+        // 검색 버튼 클릭 시 필터링된 사용자 로드
+        document.getElementById("searchButton").addEventListener("click", () => {
+            const searchTerm = document.getElementById("searchInput").value;
+            const searchCriteria = document.getElementById("searchCriteria").value;
+            loadUsers(searchTerm, searchCriteria);
+        });
+
+        // 페이지 로딩 시 모든 사용자 로드
+        document.addEventListener("DOMContentLoaded", () => {
+            loadUsers();
+        });
+    </script>
 </body>
 </html>

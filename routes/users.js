@@ -16,7 +16,8 @@ router.get('/', async (req, res, next) => {
             raw : true
         });
 
-        res.send(user)
+        response.result = user;
+        res.status(200).send(response);
     } catch (e) {
         console.error(e);
         next(e);
@@ -49,7 +50,7 @@ router.get('/check-duplication', async (req, res, next) => {
         });
 
         if (user) {response.result = false;}
-
+        else {response.result = true;}
         res.status(200).send(response);
     } catch (e) {
         console.error(e);
@@ -70,6 +71,26 @@ router.post('/signup', async (req, res, next) => {
             provider: 'local'
         });
 
+        response.result = true;
+        res.status(200).send(response);
+    } catch (e) {
+        console.error(e);
+        next(e);
+    }
+});
+
+//게정 할성화 및 비활성화
+router.post('/activate', async (req, res, next) => {
+    try {
+        const {login_id, is_active} = req.body;
+
+        await User.update({
+            is_active
+        }, {
+            where : { login_id }
+        });
+
+        response.result = true;
         res.status(200).send(response);
     } catch (e) {
         console.error(e);
