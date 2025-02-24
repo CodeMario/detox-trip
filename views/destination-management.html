@@ -229,9 +229,12 @@
                 document.querySelectorAll(".delete-button").forEach(btn => {
                     btn.addEventListener("click", async (e) => {
                         const id = e.target.dataset.id;
+                        const imagePath = "images/" + e.target.closest("tr").querySelector("img").getAttribute("src");
+
                         if (confirm("정말 삭제하시겠습니까?")) {
                             try {
-                                const response = await fetch(`/destinations/${id}`, { method: "DELETE" });
+                                const response = await fetch(`/destinations/delete?id=${id}&image_path=${encodeURIComponent(imagePath)}`, { method: "GET" });
+
                                 if (response.ok) {
                                     e.target.closest("tr").remove();
                                 } else {

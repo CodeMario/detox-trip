@@ -5,6 +5,7 @@ const Destination = require('../models/destination');
 const Review = require('../models/review');
 const Footprint = require('../models/footprint');
 const { Op } = require('sequelize');
+const { REPL_MODE_STRICT } = require('repl');
 
 const router = express.Router();
 
@@ -31,11 +32,15 @@ router.get('/', async (req, res, next) => {
 router.get('/check-duplication', async (req, res, next) => {
     try {
         const { country_name, region_name } = req.query
-        if ( await Destination.findOne({where : {country_name, region_name}})) {
-            res.send('no');
-        }
 
-        res.send('ok');
+        if ( await Destination.findOne({where : {country_name, region_name}})) {
+            response.result = false;
+            res.status(200).send(response);
+        }
+        else {
+            response.result = true;
+            res.status(200).send(response);
+        }
     } catch (e) {
         console.error(e);
         next(e);
@@ -93,19 +98,17 @@ router.post('/update', destinationUpload.single('image'), async (req, res, next)
 //여행지 삭제
 router.get('/delete', async (req, res, next) => {
     try {
-        const {destination_id} = req.query;
-        const imagePath = await Destination.findOne({
-            where : {id : destination_id} ,
-            attributes : ['image_path']
-        });
+        const {id, image_path} = req.query;
 
-        await deleteImage(imagePath.image_path);
+        await deleteImage(image_path);
 
         await Destination.destroy({
-            where : {id : destination_id}
+            where : {id}
         });
         
-        res.send('ok');
+        response.result = true;
+
+        res.status(200).send(response);
     } catch (e) {
         console.error(e);
         next(e);
