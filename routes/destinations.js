@@ -59,8 +59,9 @@ router.post('/', destinationUpload.single('image'), async (req, res, next) => {
             description,
             image_path : req.file.path
         });
-        
-        res.send('ok');
+
+        response.result = true;
+        res.status(200).send(response);
     } catch (e) {
         console.error(e);
         next(e);
@@ -70,25 +71,28 @@ router.post('/', destinationUpload.single('image'), async (req, res, next) => {
 //여행지 수정
 router.post('/update', destinationUpload.single('image'), async (req, res, next) => {
     try {
-        const {destination_id , country_name, region_name, address, description} = req.body;
-        const currentImagePath = await Destination.findOne({
-            where : {id : destination_id} ,
-            attributes : ['image_path']
+        const {id , country_name, region_name, address, description} = req.body;
+        const beforeValue = await Destination.findOne({
+            where : {id} ,
+            attributes : ['country_name','region_name','address','description','image_path']
         });
 
-        await deleteImage(currentImagePath.image_path);
+        if (req.file) {
+            await deleteImage(beforeValue.image_path);
+        }
 
         await Destination.update({
-            country_name,
-            region_name,
-            address,
-            description,
-            image_path : req.file.path
+            country_name : country_name ? country_name : beforeValue.country_name,
+            region_name : region_name ? region_name : beforeValue.region_name,
+            address : address ? address : beforeValue.address,
+            description : description ? description : beforeValue.description,
+            image_path : req.file ? req.file.path : beforeValue.image_path
         }, {
-            where : {id : destination_id}
+            where : {id}
         });
         
-        res.send('ok');
+        response.result = true;
+        res.status(200).send(response);
     } catch (e) {
         console.error(e);
         next(e);

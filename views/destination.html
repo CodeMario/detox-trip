@@ -189,7 +189,7 @@
         <textarea id="description" placeholder="내용을 입력하세요" rows="4"></textarea>
         <div class="buttons">
             <button class="save-btn">저장</button>
-            <button class="leave-btn">취소</button>
+            <button id="leave-btn" class="leave-btn">취소</button>
         </div>
     </div>
 
@@ -215,27 +215,76 @@
                 document.getElementById("page-title").textContent = "여행지 수정";
                 try {
                     const response = await fetch("/destinations");
-                    const destinations = await response.json();
-                    
+                    const data = await response.json();
+
+                    // API 응답이 destinations.result 배열에 담겨 있다고 가정
+                    const destinations = data.result;  
+
+                    if (!Array.isArray(destinations)) {
+                        console.error("올바른 데이터 형식이 아닙니다:", data);
+                        return;
+                    }
+
                     const destination = destinations.find(dest => dest.id == destinationId);
-                    
+
                     if (destination) {
-                        document.getElementById("destination-name").value = 
+                        // 첫번째 칸: country_name과 region_name을 띄어쓰기로 구분하여 표시
+                        document.getElementById("destination-name").value =
                             `${destination.country_name} ${destination.region_name}`;
 
-                        const imagePath = destination.image_path.replace("images\\destinations\\", "destinations/");
-                        document.getElementById("image-path").value = imagePath;
-
+                        // 이미지 경로 변환: images\destinations\ 또는 images/destinations/ 부분을 대체
+                        const imagePath = destination.image_path.replace(/images[\\\/]destinations[\\\/]/, "destinations/");
                         const imagePreview = document.getElementById("image-preview");
                         imagePreview.src = imagePath;
                         imagePreview.style.display = "block";
 
+                        // address 값을 입력
                         document.getElementById("address").value = destination.address;
+
+                        // description 값을 입력
                         document.getElementById("description").value = destination.description;
+                    } else {
+                        console.error("해당 ID의 여행지를 찾을 수 없습니다.");
                     }
                 } catch (error) {
                     console.error("데이터를 불러오는 중 오류 발생:", error);
                 }
+            }
+
+            else {
+                const saveBtn = document.querySelector(".save-btn");
+                const countryNameInput = document.getElementById("modal-country-name");
+                const regionNameInput = document.getElementById("modal-region-name");
+                const addressInput = document.getElementById("address");
+                const descriptionInput = document.getElementById("description");
+                const fileInput = document.getElementById("file-input");
+
+                // 모든 입력값을 검사하는 함수
+                function validateInputs() {
+                    const isCountryNameValid = countryNameInput.value.trim() !== "";
+                    const isRegionNameValid = regionNameInput.value.trim() !== "";
+                    const isAddressValid = addressInput.value.trim() !== "";
+                    const isDescriptionValid = descriptionInput.value.trim() !== "";
+                    const isFileSelected = fileInput.files.length > 0;
+
+                    // 모든 입력값이 유효하고 파일이 선택되었을 때만 저장 버튼 활성화
+                    if (isCountryNameValid && isRegionNameValid && isAddressValid && isDescriptionValid && isFileSelected) {
+                        saveBtn.disabled = false;  // 버튼 활성화
+                        saveBtn.classList.remove("disabled");
+                    } else {
+                        saveBtn.disabled = true;  // 버튼 비활성화
+                        saveBtn.classList.add("disabled");
+                    }
+                }
+                    // 각 필드에서 입력값이 변경될 때마다 validateInputs 실행
+                    countryNameInput.addEventListener("input", validateInputs);
+                    regionNameInput.addEventListener("input", validateInputs);
+                    addressInput.addEventListener("input", validateInputs);
+                    descriptionInput.addEventListener("input", validateInputs);
+                    fileInput.addEventListener("change", validateInputs);
+
+                    // 페이지 로딩 시 초기값을 체크
+                    validateInputs();
             }
         });
 
@@ -303,6 +352,61 @@
 
         document.getElementById("cancel-btn").addEventListener("click", () => {
             modal.style.display = "none";
+        });
+
+        document.querySelector(".save-btn").addEventListener("click", async () => {
+            const destinationId = new URLSearchParams(window.location.search).get("id");
+            const countryName = document.getElementById("modal-country-name").value.trim();
+            const regionName = document.getElementById("modal-region-name").value.trim();
+            const address = document.getElementById("address").value.trim();
+            const description = document.getElementById("description").value.trim();
+            const fileInput = document.getElementById("file-input");
+            const file = fileInput.files[0];
+
+            const formData = new FormData();
+            formData.append("country_name", countryName);
+            formData.append("region_name", regionName);
+            formData.append("address", address);
+            formData.append("description", description);
+            if (file) {
+                formData.append("image", file);
+            }
+
+            let url, method;
+            if (destinationId) {
+                // '여행지 수정'일 경우
+                url = "/destinations/update";
+                formData.append("id", destinationId);
+                method = "POST";
+            } else {
+                // '여행지 추가'일 경우
+                url = "/destinations";
+                method = "POST";
+            }
+
+            try {
+                const response = await fetch(url, {
+                    method: method,
+                    body: formData,
+                });
+
+                const data = await response.json();
+
+                console.log(data);
+                if (data.result) {
+                    alert("저장되었습니다.");
+                    window.location.href = "/destination-management.html";  // 성공 후 목록 페이지로 이동
+                } else {
+                    alert("저장 실패. 다시 시도해주세요.");
+                }
+            } catch (error) {
+                console.error("저장 중 오류 발생:", error);
+                alert("저장 중 오류가 발생했습니다. 다시 시도해주세요.");
+            }
+        });
+
+        document.getElementById("leave-btn").addEventListener("click", () => {
+            window.location.href = "/destination-management.html";
         });
     </script>
 </body>
