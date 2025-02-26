@@ -16,6 +16,7 @@ const activitiesRouter = require('./routes/activities');
 const reviewsRouter = require('./routes/reviews');
 const postsRouter = require('./routes/posts');
 const { resourceLimits } = require('worker_threads');
+const { startScheduler } = require('./middlewares/dataHandler');
 
 require('dotenv').config()
 
@@ -47,6 +48,8 @@ app.use(session({
 
 app.use(passport.initialize());
 app.use(passport.session());
+
+startScheduler();
 
 app.use('/auth', authRouter);
 app.use('/users', usersRouter);
