@@ -1,7 +1,9 @@
 const express = require('express');
+const { Op, Sequelize } = require('sequelize');
 
 const Review = require('../models/review');
 const Footprint = require('../models/footprint');
+const Destination = require('../models/destination');
 
 const router = express.Router();
 
@@ -10,11 +12,27 @@ const response = {result : true}
 //리뷰 전체 조회
 router.get('/', async (req, res, next) => {
     try {
-        const review = await Review.findAll({
-            raw : true
-        });
+        const { page = 1 } = req.query;
+        const limit = 10;
+        const offset = (page - 1) * limit;
 
-        res.send(review);
+        const { count, review } = await Review.findAndCountAll({
+            attributes: [
+                'destination_id',
+                [Sequelize.fn('AVG', Sequelize.col('rating')), 'rating']
+            ],
+            group: ['destination_id'],
+            raw: true,
+            include: [{
+                model: Destination,
+                attributes: ['image_path', 'country_name', 'region_name']
+            }],
+            limit,
+            offset
+        });
+        
+        response.result = { count, review };
+        res.status(200).send(response);
     } catch(e) {
         console.log(e);
         next(e);
