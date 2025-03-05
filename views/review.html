@@ -33,17 +33,28 @@
             display: grid;
             grid-template-columns: repeat(5, 1fr);
             gap: 10px;
-            margin-top: 60px;
+            margin-top: 30px;
         }
         .review-item {
             border: 1px solid #ddd;
             padding: 10px;
             text-align: center;
+            min-height: 150px;
+            font-size: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            cursor: pointer; /* 클릭 가능하도록 커서 변경 */
+        }
+        .image-container {
+            width: 100%;
+            height: 100px;
+            overflow: hidden;
         }
         .review-item img {
-            width: 100px;
-            height: 100px;
-            object-fit: cover;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
         }
         .pagination {
             margin-top: 20px;
@@ -53,6 +64,36 @@
             margin: 5px;
             padding: 5px 10px;
         }
+        .filter-container {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            margin: 10px 0;
+            z-index: 1001;
+            position: relative;
+            padding-left: 20px;
+            margin-top: 80px;
+        }
+        .filter-container select, .filter-container input {
+            margin-right: 10px;
+            padding: 5px;
+            font-size: 14px;
+        }
+        .button-container {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center; /* 버튼과 filter-container의 높이가 맞도록 설정 */
+            width: 100%;
+            margin-top: -40px; /* 위쪽 여백 조정 */
+            padding-right: 20px; /* 오른쪽 여백 추가 */
+        }
+
+        .action-buttons {
+            margin-left: 20px; /* 버튼 간격 조정 */
+            padding: 10px;
+            font-size: 14px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -61,48 +102,79 @@
             <img src="/logo.png" alt="Logo"> DetoxTrip
         </div>
     </header>
-    
+
+    <!-- 정렬 및 검색 기능 -->
+    <div class="filter-container">
+        <select id="sortSelect">
+            <option value="none">기본</option>
+            <option value="rating">별점순</option>
+        </select>
+        <input type="text" id="searchInput" placeholder="여행지 이름" />
+    </div>
+
+    <div class="button-container">
+        <button class="action-buttons" id="createReviewBtn">리뷰 작성</button>
+        <button class="action-buttons" id="editReviewBtn">리뷰 수정</button>
+    </div>
+
     <div class="review-container" id="reviewContainer"></div>
     <div class="pagination" id="pagination"></div>
-    
+
     <script>
         let currentPage = 1;
 
-        async function fetchReviews(page) {
+        // 정렬 및 검색 기능 처리
+        document.getElementById('sortSelect').addEventListener('change', updateFilters);
+        document.getElementById('searchInput').addEventListener('input', updateFilters);
+
+        async function updateFilters() {
+            const sortBy = document.getElementById('sortSelect').value;
+            const search = document.getElementById('searchInput').value.trim();
+            fetchDestinations(currentPage, sortBy, search);
+        }
+
+        async function fetchDestinations(page, sortBy = 'none', search = '') {
             try {
-                const response = await fetch(`/reviews?page=${page}`);
+                const response = await fetch(`/reviews/destinations?page=${page}&sortBy=${sortBy}&search=${search}`);
                 const data = await response.json();
-                
-                console.log("서버 응답:", data);
-                
-                const reviews = data.result?.review || [];
+    
+                const destinations = data.result?.destinations || [];
                 const count = data.result?.count || 0;
-                
-                renderReviews(reviews);
+    
+                renderDestinations(destinations);
                 updatePagination(count);
             } catch (error) {
-                console.error("Error fetching reviews:", error);
+                console.error("Error fetching destinations:", error);
+                renderDestinations([]);
+                updatePagination(0);
             }
         }
 
-        function renderReviews(reviews) {
+        function renderDestinations(destinations) {
             const container = document.getElementById('reviewContainer');
             container.innerHTML = '';
-            
-            if (reviews.length === 0) {
-                container.innerHTML = "<p>아직 등록된 리뷰가 없습니다.</p>";
-                return;
-            }
-            
-            reviews.forEach(review => {
-                const imagePath = review['Destination.image_path']?.replace('images/', '') || 'default.png';
-                const regionName = review['Destination.region_name'] || '알 수 없음';
+    
+            destinations.forEach(destination => {
+                const regionName = destination.region_name || '';
+                const id = destination.id || ''; // id 값 추가
+                let imagePath = destination.image_path || '';
+    
+                imagePath = imagePath.replace(/\\/g, '/');
+                if (imagePath.startsWith('images/')) {
+                    imagePath = imagePath.replace('images/', '');
+                }
+    
                 const reviewItem = document.createElement('div');
                 reviewItem.classList.add('review-item');
                 reviewItem.innerHTML = `
-                    <img src="/${imagePath}" alt="${regionName}">
+                    <div class="image-container">
+                        ${imagePath ? `<img src="${imagePath}"/>` : ''}
+                    </div>
                     <p>${regionName}</p>
                 `;
+                reviewItem.addEventListener('click', () => {
+                    window.location.href = `example.html?id=${id}`; // id 값을 URL에 추가하여 이동
+                });
                 container.appendChild(reviewItem);
             });
         }
@@ -110,24 +182,45 @@
         function updatePagination(count) {
             const pagination = document.getElementById('pagination');
             pagination.innerHTML = '';
-            const totalPages = Math.ceil(count / 10);
-            if (totalPages < 1) return;
-            
-            for (let i = 1; i <= totalPages; i++) {
-                const button = document.createElement('button');
-                button.innerText = i;
-                button.onclick = () => {
-                    currentPage = i;
-                    fetchReviews(i);
-                };
-                if (i === currentPage) {
-                    button.style.fontWeight = 'bold';
+            const totalPages = Math.max(1, Math.ceil(count / 10));
+    
+            const prevButton = document.createElement('button');
+            prevButton.innerText = '<<';
+            prevButton.disabled = currentPage === 1;
+            prevButton.onclick = () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    fetchDestinations(currentPage);
                 }
-                pagination.appendChild(button);
-            }
+            };
+            pagination.appendChild(prevButton);
+    
+            const pageButton = document.createElement('button');
+            pageButton.innerText = currentPage;
+            pageButton.style.fontWeight = 'bold';
+            pagination.appendChild(pageButton);
+    
+            const nextButton = document.createElement('button');
+            nextButton.innerText = '>>';
+            nextButton.disabled = currentPage >= totalPages;
+            nextButton.onclick = () => {
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    fetchDestinations(currentPage);
+                }
+            };
+            pagination.appendChild(nextButton);
         }
 
-        fetchReviews(currentPage);
+        document.getElementById('createReviewBtn').addEventListener('click', () => {
+            window.location.href = 'example.html'; // 리뷰 작성 페이지로 이동
+        });
+
+        document.getElementById('editReviewBtn').addEventListener('click', () => {
+            window.location.href = 'example.html'; // 리뷰 수정 페이지로 이동
+        });
+
+        fetchDestinations(currentPage);
     </script>
 </body>
 </html>

@@ -9,38 +9,8 @@ const router = express.Router();
 
 const response = {result : true}
 
-//리뷰 전체 조회
-router.get('/', async (req, res, next) => {
-    try {
-        const { page = 1 } = req.query;
-        const limit = 10;
-        const offset = (page - 1) * limit;
-
-        const { count, review } = await Review.findAndCountAll({
-            attributes: [
-                'destination_id',
-                [Sequelize.fn('AVG', Sequelize.col('rating')), 'rating']
-            ],
-            group: ['destination_id'],
-            raw: true,
-            include: [{
-                model: Destination,
-                attributes: ['image_path', 'country_name', 'region_name']
-            }],
-            limit,
-            offset
-        });
-        
-        response.result = { count, review };
-        res.status(200).send(response);
-    } catch(e) {
-        console.log(e);
-        next(e);
-    }
-});
-
 //개인 리뷰 조회
-router.get('/me', async (req, res, next) => {
+router.get('/', async (req, res, next) => {
     try {
         const review = await Review.findOne({
             where : {id : req.user.id},
@@ -54,7 +24,7 @@ router.get('/me', async (req, res, next) => {
     }
 });
 
-//선택 리뷰 조회
+//여행지 리뷰 조회
 router.get('/this', async (req, res, next) => {
     try {
         const {destination_id} = req.query;
@@ -66,6 +36,55 @@ router.get('/this', async (req, res, next) => {
         res.send(review);
     } catch(e) {
         console.log(e);
+        next(e);
+    }
+});
+
+//전체 여행지 조회
+router.get('/destinations', async (req, res, next) => {
+    try {
+        let page = parseInt(req.query.page) || 1;
+        let limit = 10;
+        let offset = (page - 1) * limit;
+        let where = {};  // 검색 조건을 담을 객체
+
+        // 검색어 처리
+        if (req.query.search) {
+            const search = req.query.search;
+            where = {
+                [Op.or]: [
+                    { region_name: { [Op.like]: `%${search}%` } },
+                    { country_name: { [Op.like]: `%${search}%` } }
+                ]
+            };
+        }
+
+        const order = req.query.sort === 'rating' ? [
+            [sequelize.literal('AVG(review.rating)'), 'DESC']  // 리뷰 테이블을 사용하고 별점 순으로 정렬
+        ] : [];  // 'rating'이 없으면 기본 순서대로
+
+        const { count, rows: destinations } = await Destination.findAndCountAll({
+            attributes: ['id', 'region_name', 'country_name', 'address', 'description', 'image_path'],
+            where: where,  // 검색 조건 추가
+            include: [{
+                model: Review, // Review 모델을 포함하여 별점 순으로 정렬
+                attributes: [],
+                required: false  // review가 없으면 포함되지 않음
+            }],
+            limit: limit,
+            offset: offset,
+            order: order,  // 정렬 기준 추가
+            raw: true
+        });
+
+        res.status(200).send({
+            result: {
+                destinations: destinations,
+                count: count
+            }
+        });
+    } catch (e) {
+        console.error(e);
         next(e);
     }
 });
