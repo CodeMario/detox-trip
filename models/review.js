@@ -14,7 +14,8 @@ module.exports = class Review extends Sequelize.Model {
             },
             r_posted_time : {
                 type : Sequelize.DATE,
-                allowNull : false
+                allowNull : false,
+                defaultValue: Sequelize.NOW
             },
             rating : {
                 type : Sequelize.FLOAT,

@@ -77,12 +77,12 @@ router.get('/destinations', async (req, res, next) => {
             raw: true
         });
 
-        res.status(200).send({
-            result: {
-                destinations: destinations,
-                count: count
-            }
-        });
+        response.result = {
+            destinations: destinations,
+            count: count
+        }
+
+        res.status(200).send(response);
     } catch (e) {
         console.error(e);
         next(e);
@@ -93,12 +93,34 @@ router.get('/destinations', async (req, res, next) => {
 router.get('/remainder', async (req, res, next) => {
     try {
         const review = await Footprint.findAll({
-            where : {user_id : req.user.id},
-            raw : true
+            where: { user_id: req.user.id },
+            attributes: [
+                'id', 'user_id', 'destination_id',
+                [Sequelize.literal(`
+                    CASE 
+                        WHEN EXISTS (
+                            SELECT 1 FROM review
+                            WHERE review.user_id = footprint.user_id
+                            AND review.destination_id = footprint.destination_id
+                        ) 
+                        THEN true ELSE false 
+                    END
+                `), 'hasReview'],
+                [Sequelize.col('destination.region_name'), 'region_name']
+            ],
+            include: [
+                {
+                    model: Destination,
+                    attributes: [],
+                    required: false
+                }
+            ],
+            raw: true
         });
 
-        res.send(review);
-    } catch(e) {
+        response.result = review;
+        res.status(200).send(response);
+    } catch (e) {
         console.log(e);
         next(e);
     }
@@ -107,17 +129,17 @@ router.get('/remainder', async (req, res, next) => {
 //리뷰 등록
 router.post('/', async (req, res, next) => {
     try {
-        const {destination_id, r_content, r_posted_time, rating} = req.body;
+        const {destination_id, r_content, rating} = req.body;
 
         await Review.create({
             r_content,
-            r_posted_time,
             rating,
             user_id : req.user.id,
             destination_id
         });
 
-        res.send('ok');
+        response.result = true;
+        res.status(200).send(response);
     } catch(e) {
         console.log(e);
         next(e);

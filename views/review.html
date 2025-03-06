@@ -138,8 +138,8 @@
                 const response = await fetch(`/reviews/destinations?page=${page}&sortBy=${sortBy}&search=${search}`);
                 const data = await response.json();
     
-                const destinations = data.result?.destinations || [];
-                const count = data.result?.count || 0;
+                const destinations = data?.result?.destinations || [];
+                const count = data?.result?.count || 0;
     
                 renderDestinations(destinations);
                 updatePagination(count);
@@ -213,7 +213,7 @@
         }
 
         document.getElementById('createReviewBtn').addEventListener('click', () => {
-            window.location.href = 'example.html'; // 리뷰 작성 페이지로 이동
+            window.location.href = 'review_write.html'; // 리뷰 작성 페이지로 이동
         });
 
         document.getElementById('editReviewBtn').addEventListener('click', () => {
