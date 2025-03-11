@@ -258,16 +258,17 @@
                 for (let i = 1; i <= 5; i++) {
                     const starInput = document.createElement("input");
                     starInput.type = "radio";
-                    starInput.id = `star${i}`;
+                    starInput.id = `star${i}`;  // 수정된 부분
                     starInput.name = "rating";
                     starInput.value = i;
+                    
                     const starLabel = document.createElement("label");
-                    starLabel.setAttribute("for", `star${i}`);
+                    starLabel.setAttribute("for", `star${i}`);  // 수정된 부분
                     starLabel.textContent = "★";
 
                     starInput.addEventListener("click", () => {
                         for (let j = 1; j <= 5; j++) {
-                            const star = document.querySelector(`#star${j} ~ label`);
+                            const star = document.querySelector(`#star${j} ~ label`);  // 수정된 부분
                             if (j <= i) {
                                 star.style.color = "gold";
                             } else {
@@ -294,12 +295,18 @@
                 reviewBoxContainer.appendChild(reviewBox);
 
                 submitBtn.addEventListener("click", () => {
-                    if (hasReview) {
-                        document.getElementById("reviewModal").style.display = "flex";
-                    } else {
-                        const rating = document.querySelector('input[name="rating"]:checked')?.value;
-                        const r_content = textarea.value;
+                    const rating = document.querySelector('input[name="rating"]:checked')?.value;
+                    const r_content = textarea.value;  // 이 부분에서 textarea를 참조
 
+                    if (!r_content.trim()) {
+                        alert("리뷰 내용을 작성해주세요.");
+                        return;
+                    }
+                
+                    if (hasReview) {
+                        document.getElementById("reviewModal").style.display = "flex";  // 모달 띄우기
+                    } else {
+                        // 리뷰가 없을 경우에는 새로운 리뷰를 등록하는 요청
                         fetch("/reviews", {
                             method: "POST",
                             headers: {
@@ -318,14 +325,39 @@
                         });
                     }
                 });
+
+                // 모달에서 '확인' 버튼 클릭 시
+                document.getElementById("confirmBtn").addEventListener("click", () => {
+                    const rating = document.querySelector('input[name="rating"]:checked')?.value;
+                    const r_content = textarea.value;  // 이 부분에서도 textarea를 참조
+
+                    fetch("/reviews/update", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            destination_id: selectedValue,
+                            r_content: r_content,
+                            rating: rating
+                        })
+                    }).then(response => {
+                        if (response.ok) {
+                            alert("리뷰가 수정되었습니다.");
+                            window.location.reload();
+                        }
+                    });
+
+                    document.getElementById("reviewModal").style.display = "none";  // 모달 닫기
+                });
+
+                // 모달에서 '취소' 버튼 클릭 시
+                document.getElementById("cancelBtn").addEventListener("click", () => {
+                    document.getElementById("reviewModal").style.display = "none";  // 모달 닫기
+                });
             } else {
                 console.error("유효한 지역이 선택되지 않았거나 데이터가 로드되지 않았습니다.");
             }
-        });
-
-        // 모달 취소 버튼
-        document.getElementById("cancelBtn").addEventListener("click", () => {
-            document.getElementById("reviewModal").style.display = "none";
         });
     </script>
 </body>

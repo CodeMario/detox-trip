@@ -131,9 +131,11 @@ router.post('/', async (req, res, next) => {
     try {
         const {destination_id, r_content, rating} = req.body;
 
+        console.log(destination_id, r_content, rating)
+
         await Review.create({
             r_content,
-            rating,
+            rating : rating ? rating : 0,
             user_id : req.user.id,
             destination_id
         });
@@ -149,17 +151,20 @@ router.post('/', async (req, res, next) => {
 //리뷰 수정
 router.post('/update', async (req, res, next) => {
     try {
-        const {review_id, r_content, r_posted_time, rating} = req.body;
+        const {destination_id, r_content, rating} = req.body;
 
         await Review.update({
             r_content,
-            r_posted_time,
-            rating
+            r_posted_time : new Date(),
+            rating : rating ? rating : 0
         },{
-            where : {id : review_id}
+            where : {user_id : req.user.id,
+                destination_id : destination_id
+             }
         });
 
-        res.send('ok');
+        response.result = true;
+        res.status(200).send(response);
     } catch(e) {
         console.log(e);
         next(e);
