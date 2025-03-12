@@ -12,12 +12,20 @@ const response = {result : true}
 //개인 리뷰 조회
 router.get('/', async (req, res, next) => {
     try {
-        const review = await Review.findOne({
-            where : {id : req.user.id},
-            raw : true
+        const review = await Review.findAll({
+            where: { user_id: req.user.id },
+            attributes: ['id', 'destination_id', 'r_content', 'rating'],
+            include: [
+                {
+                    model: Destination,
+                    as: 'Destination',
+                    attributes: ['region_name']
+                }
+            ]
         });
 
-        res.send(review);
+        response.result = review
+        res.status(200).send(response);
     } catch(e) {
         console.log(e);
         next(e);
