@@ -167,43 +167,40 @@
         document.getElementById("regionSelect").addEventListener("change", (event) => {
             const selectedValue = event.target.value;
             const reviewBoxContainer = document.getElementById("reviewBoxContainer");
-            reviewBoxContainer.innerHTML = "";  // 기존 박스 제거
+            reviewBoxContainer.innerHTML = "";
 
-            if (selectedValue && data) {  // data가 정상적으로 로드되었는지 확인
-                const selectedRegion = event.target.selectedOptions[0].textContent;
-
-                const destinationData = data.result.find(item => item.destination_id == selectedValue);  // 선택한 여행지 정보 찾기
+            if (selectedValue && data) {
+                const destinationData = data.result.find(item => item.destination_id == selectedValue);
+                if (!destinationData) return;
 
                 const reviewBox = document.createElement("div");
                 reviewBox.classList.add("review-box");
 
                 const regionName = document.createElement("h3");
-                regionName.textContent = selectedRegion;
+                regionName.textContent = destinationData.Destination.region_name;
                 reviewBox.appendChild(regionName);
 
                 const starRating = document.createElement("div");
                 starRating.classList.add("star-rating");
 
+                // ⭐ 고유한 ID를 사용하도록 수정
                 for (let i = 1; i <= 5; i++) {
                     const starInput = document.createElement("input");
                     starInput.type = "radio";
-                    starInput.id = `star${i}`;  // 수정된 부분
-                    starInput.name = "rating";
+                    starInput.id = `star${destinationData.destination_id}_${i}`; // ID에 destination_id 포함
+                    starInput.name = `rating_${destinationData.destination_id}`;
                     starInput.value = i;
                     
                     const starLabel = document.createElement("label");
-                    starLabel.setAttribute("for", `star${i}`);  // 수정된 부분
+                    starLabel.setAttribute("for", starInput.id); // 변경된 ID 적용
                     starLabel.textContent = "★";
 
+                    if (i === destinationData.rating) {
+                        starInput.checked = true;
+                    }
+
                     starInput.addEventListener("click", () => {
-                        for (let j = 1; j <= 5; j++) {
-                            const star = document.querySelector(`#star${j} ~ label`);  // 수정된 부분
-                            if (j <= i) {
-                                star.style.color = "gold";
-                            } else {
-                                star.style.color = "#ddd";
-                            }
-                        }
+                        updateStarRating(i, reviewBox);
                     });
 
                     starRating.appendChild(starInput);
@@ -212,8 +209,12 @@
 
                 reviewBox.appendChild(starRating);
 
+                // ⭐ 수정된 updateStarRating 함수 사용
+                updateStarRating(destinationData.rating, reviewBox);
+
                 const textarea = document.createElement("textarea");
                 textarea.placeholder = "리뷰를 작성해주세요.";
+                textarea.value = destinationData.r_content || "";
                 reviewBox.appendChild(textarea);
 
                 const submitBtn = document.createElement("button");
@@ -223,22 +224,53 @@
 
                 reviewBoxContainer.appendChild(reviewBox);
 
-                submitBtn.addEventListener("click", () => {
-                    const rating = document.querySelector('input[name="rating"]:checked')?.value;
-                    const r_content = textarea.value;  // 이 부분에서 textarea를 참조
+                submitBtn.addEventListener("click", async () => {
+                    const rating = reviewBox.querySelector(`input[name="rating_${destinationData.destination_id}"]:checked`)?.value;
+                    const r_content = textarea.value;
+                    const destination_id = document.getElementById("regionSelect").value;
 
                     if (!r_content.trim()) {
                         alert("리뷰 내용을 작성해주세요.");
                         return;
                     }
-                    else {
-                        //
+                    try {
+                        const response = await fetch("/reviews/update", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                            body: JSON.stringify({
+                                destination_id,
+                                rating: Number(rating),
+                                r_content,
+                            }),
+                        });
+
+                        const result = await response.json();
+                        
+                        if (response.ok) {
+                            alert("리뷰가 수정되었습니다.");
+                            window.location.reload();
+                        } else {
+                            throw new Error(result.message || "리뷰 등록 실패");
+                        }
+                    } catch (error) {
+                        console.error("리뷰 수정 중 오류 발생:", error);
+                        alert("리뷰 수정에 실패했습니다. 다시 시도해주세요.");
                     }
                 });
             } else {
                 console.error("유효한 지역이 선택되지 않았거나 데이터가 로드되지 않았습니다.");
             }
         });
+
+        // ⭐ 현재 reviewBox 내부에서만 별 색상을 변경하도록 수정
+        function updateStarRating(rating, reviewBox) {
+            const stars = reviewBox.querySelectorAll(".star-rating label");
+            stars.forEach((star, index) => {
+                star.style.color = index < rating ? "gold" : "#ddd";
+            });
+        }
     </script>
 </body>
 </html>
