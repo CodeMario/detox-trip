@@ -4,6 +4,7 @@ const { Op, Sequelize } = require('sequelize');
 const Review = require('../models/review');
 const Footprint = require('../models/footprint');
 const Destination = require('../models/destination');
+const User = require('../models/user');
 
 const router = express.Router();
 
@@ -37,11 +38,18 @@ router.get('/this', async (req, res, next) => {
     try {
         const {destination_id} = req.query;
         const review = await Review.findAll({
-            where : {destination_id},
-            raw : true
+            where: { destination_id },
+            include: [
+                {
+                    model: User,
+                    attributes: ['nickname'],
+                    required: true
+                }
+            ]
         });
 
-        res.send(review);
+        response.result = review
+        res.status(200).send(response);
     } catch(e) {
         console.log(e);
         next(e);

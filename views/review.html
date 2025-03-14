@@ -173,7 +173,7 @@
                     <p>${regionName}</p>
                 `;
                 reviewItem.addEventListener('click', () => {
-                    window.location.href = `example.html?id=${id}`; // id 값을 URL에 추가하여 이동
+                    window.location.href = `review_destination.html?id=${id}&regionName=${regionName}&imagePath=${imagePath}`; // id 값을 URL에 추가하여 이동
                 });
                 container.appendChild(reviewItem);
             });
