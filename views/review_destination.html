@@ -44,18 +44,103 @@
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
+        .review-container {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+        }
         .review-table {
-            width: 80%;
+            width: 900px;
             margin: 20px auto;
             border-collapse: collapse;
+            table-layout: fixed; /* 테이블 너비 고정 */
         }
         .review-table th, .review-table td {
             border: 1px solid #ddd;
             padding: 8px;
             text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .review-table th:nth-child(1) {
+            width: 100px;
+        }
+        .review-table th:nth-child(2) {
+            width: 400px; /* 내용 칸의 고정된 너비 설정 */
+            text-align: center; /* '내용' 헤더는 중앙 정렬 유지 */
+        }
+        .review-table td:nth-child(2) {
+            width: 400px;
+            text-align: left; /* 내용은 왼쪽 정렬 */
+            padding-left: 12px; /* 가독성을 위한 왼쪽 여백 */
+        }
+        .review-table th:nth-child(3) {
+            width: 100px;
+        }
+        .review-table th:nth-child(4) {
+            width: 150px;
         }
         .review-table th {
             background-color: #f4f4f4;
+        }
+        .stars {
+            display: flex;
+            justify-content: center;
+        }
+        .star {
+            font-size: 20px;
+            color: #ddd;
+        }
+        .modal {
+            display: none; /* 기본적으로 숨김 */
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5); /* 배경 흐림 효과 */
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            width: 500px;
+            max-width: 80%;
+            position: relative;
+            box-sizing: border-box; /* 패딩과 경계를 포함하여 너비 계산 */
+        }
+        .close {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            float: right;
+        }
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .modal-rating {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+        .modal-content-textarea {
+            width: 100%;
+            height: 150px;
+            resize: none;
+            padding: 10px;
+            font-size: 16px;
+            background-color: #f4f4f4;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: Arial, sans-serif;
+            box-sizing: border-box; /* 패딩을 포함한 너비 계산 */
         }
     </style>
 </head>
@@ -68,23 +153,84 @@
     <div class="content">
         <div id="regionName" class="region-name"></div>
         <img id="regionImage" class="region-image" src="" alt="Region Image">
-        <table class="review-table">
-            <thead>
-                <tr>
-                    <th>작성자</th>
-                    <th>내용</th>
-                    <th>별점</th>
-                    <th>작성 시간</th>
-                </tr>
-            </thead>
-            <tbody id="reviewTableBody">
-            </tbody>
-        </table>
+        <div class="review-container">
+            <table class="review-table">
+                <thead>
+                    <tr>
+                        <th>작성자</th>
+                        <th>내용</th>
+                        <th>별점</th>
+                        <th>작성 시간</th>
+                    </tr>
+                </thead>
+                <tbody id="reviewTableBody">
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div id="reviewModal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="closeModal">&times;</span>
+            <div id="modalRating" class="modal-rating"></div>
+            <textarea id="modalContent" class="modal-content-textarea" readonly></textarea>
+        </div>
     </div>
     <script>
-        document.addEventListener("DOMContentLoaded", async function() {
+        let page = 1;
+        let loading = false;
+
+        async function fetchReviews() {
+            if (loading) return;
+            loading = true;
+
             const urlParams = new URLSearchParams(window.location.search);
             const id = urlParams.get("id");
+            if (!id) return;
+
+            try {
+                const response = await fetch(`/reviews/this?destination_id=${id}&page=${page}`);
+                const data = await response.json();
+                const reviews = Array.isArray(data.result) ? data.result : [];
+                const tableBody = document.getElementById("reviewTableBody");
+
+                reviews.forEach(review => {
+                    const row = document.createElement("tr");
+                    row.dataset.rating = review.rating;
+                    row.dataset.content = review.r_content;
+
+                    row.innerHTML = `
+                        <td>${review.User.nickname}</td>
+                        <td>${review.r_content.length > 50 ? review.r_content.substring(0, 50) + '...' : review.r_content}</td>
+                        <td class="stars">${renderStars(review.rating)}</td>
+                        <td>${formatDate(review.r_posted_time)}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+
+                page++;
+                loading = false;
+            } catch (error) {
+                console.error("Error fetching reviews:", error);
+                loading = false;
+            }
+        }
+
+        function renderStars(rating) {
+            let starsHtml = '';
+            for (let i = 1; i <= 5; i++) {
+                starsHtml += `<span class="star" style="color: ${i <= rating ? 'gold' : '#ddd'}">★</span>`;
+            }
+            return starsHtml;
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return `${date.getFullYear()}-${('0' + (date.getMonth() + 1)).slice(-2)}-${('0' + date.getDate()).slice(-2)} ` +
+                   `${('0' + date.getHours()).slice(-2)}:${('0' + date.getMinutes()).slice(-2)}:${('0' + date.getSeconds()).slice(-2)}`;
+        }
+
+        document.addEventListener("DOMContentLoaded", async function() {
+            const urlParams = new URLSearchParams(window.location.search);
             const regionName = urlParams.get("regionName");
             const imagePath = urlParams.get("imagePath");
 
@@ -95,34 +241,42 @@
                 document.getElementById("regionImage").src = imagePath;
             }
 
-            if (id) {
-                try {
-                    const response = await fetch(`/reviews/this?destination_id=${id}`, {
-                        method: "GET",
-                        headers: {
-                            "Content-Type": "application/json"
-                        }
-                    });
-                    const data = await response.json();
-                    console.log("Reviews Data:", data);
+            await fetchReviews();
 
-                    // 서버에서 반환된 데이터가 배열인지 확인
-                    const reviews = Array.isArray(data.result) ? data.result : [];
+            const tableBody = document.getElementById("reviewTableBody");
+            const modal = document.getElementById("reviewModal");
+            const closeModalButton = document.getElementById("closeModal");
+
+            tableBody.addEventListener("click", function(event) {
+                if (event.target.closest("tr")) { // tr 클릭 이벤트
+                    const row = event.target.closest("tr");
+                    const reviewData = row.dataset; // 데이터 속성에서 리뷰 정보 가져오기
                     
-                    const tableBody = document.getElementById("reviewTableBody");
-                    reviews.forEach(review => {
-                        const row = document.createElement("tr");
-                        row.innerHTML = `
-                            <td>${review.User.nickname}</td>
-                            <td>${review.r_content}</td>
-                            <td>${review.rating}</td>
-                            <td>${review.r_posted_time}</td>
-                        `;
-                        tableBody.appendChild(row);
-                    });
-                } catch (error) {
-                    console.error("Error fetching reviews:", error);
+                    // 모달에 정보 설정
+                    document.getElementById("modalRating").innerHTML = renderStars(reviewData.rating);
+                    document.getElementById("modalContent").textContent = reviewData.content;
+
+                    // 모달 표시
+                    modal.style.display = "flex";
                 }
+            });
+
+            // 모달 닫기
+            closeModalButton.addEventListener("click", function() {
+                modal.style.display = "none";
+            });
+
+            // 모달 외부 클릭 시 닫기
+            window.addEventListener("click", function(event) {
+                if (event.target === modal) {
+                    modal.style.display = "none";
+                }
+            });
+        });
+
+        window.addEventListener("scroll", () => {
+            if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 100) {
+                fetchReviews();
             }
         });
     </script>
