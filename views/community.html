@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>DetoxTrip</title>
+    <style>
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            border-bottom: 1px solid #ddd;
+            width: 100%;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background: white;
+            z-index: 1000;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            color: #144e37;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        .logo img {
+            height: 24px;
+            width: auto;
+            margin-right: 5px;
+        }
+        table {
+            width: 800px;
+            border-collapse: collapse;
+            margin: 80px auto;
+            table-layout: fixed;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        th:nth-child(1) { width: 10%; }
+        th:nth-child(2) { width: 40%; }
+        th:nth-child(3) { width: 20%; }
+        th:nth-child(4) { width: 20%; }
+        th:nth-child(5) { width: 10%; }
+        .pagination {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .pagination button {
+            margin: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <img src="/logo.png" alt="Logo"> DetoxTrip
+        </div>
+    </header>
+    
+    <table id="postsTable">
+        <thead>
+            <tr>
+                <th>No</th>
+                <th>제목</th>
+                <th>글쓴이</th>
+                <th>작성시간</th>
+                <th>좋아요</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+    
+    <div class="pagination">
+        <button id="prevPage">이전</button>
+        <span id="pageNumber">1</span>
+        <button id="nextPage">다음</button>
+    </div>
+    
+    <script>
+        let currentPage = 1;
+        
+        async function fetchPosts(page) {
+            try {
+                const response = await fetch(`/posts?page=${page}`);
+                const data = await response.json();
+                
+                if (data.result) {
+                    renderTable(data.result);
+                }
+            } catch (error) {
+                console.error('데이터를 불러오는 중 오류 발생:', error);
+            }
+        }
+        
+        function formatDate(isoString) {
+            const date = new Date(isoString);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            const seconds = String(date.getSeconds()).padStart(2, '0');
+            return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+        }
+        
+        function renderTable(posts) {
+            const tbody = document.querySelector("#postsTable tbody");
+            tbody.innerHTML = "";
+            
+            posts.forEach((post, index) => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${(currentPage - 1) * 10 + index + 1}</td>
+                    <td>${post.title}</td>
+                    <td>${post.User.nickname}</td>
+                    <td>${formatDate(post.p_posted_time)}</td>
+                    <td>${post.like}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        document.querySelector("#prevPage").addEventListener("click", () => {
+            if (currentPage > 1) {
+                currentPage--;
+                document.querySelector("#pageNumber").textContent = currentPage;
+                fetchPosts(currentPage);
+            }
+        });
+        
+        document.querySelector("#nextPage").addEventListener("click", () => {
+            currentPage++;
+            document.querySelector("#pageNumber").textContent = currentPage;
+            fetchPosts(currentPage);
+        });
+        
+        fetchPosts(currentPage);
+    </script>
+</body>
+</html>

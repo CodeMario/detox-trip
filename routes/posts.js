@@ -2,17 +2,33 @@ const express = require('express');
 
 const Post = require('../models/post');
 const Comment = require('../models/comment');
+const { Model } = require('sequelize');
+const User = require('../models/user');
 
 const router = express.Router();
+
+const response = {result : true};
 
 //게시글 전체 조회
 router.get('/', async (req, res, next) => {
     try {
+        let page = parseInt(req.query.page) || 1;
+        let limit = 10;
+        let offset = (page - 1) * limit;
+
         const post = await Post.findAll({
-            raw : true
+            include:[
+                {
+                    model: User,
+                    attributes: ['nickname']
+                }
+            ],
+            limit: limit,
+            offset: offset
         });
 
-        res.send(post);
+        response.result = post;
+        res.status(200).send(response);
     } catch(e) {
         console.log(e);
         next(e);
