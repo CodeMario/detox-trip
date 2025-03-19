@@ -4,6 +4,7 @@ const Post = require('../models/post');
 const Comment = require('../models/comment');
 const { Model } = require('sequelize');
 const User = require('../models/user');
+const { Op } = require('sequelize');
 
 const router = express.Router();
 
@@ -15,22 +16,43 @@ router.get('/', async (req, res, next) => {
         let page = parseInt(req.query.page) || 1;
         let limit = 10;
         let offset = (page - 1) * limit;
+        let sort = req.query.sort || 'latest'; // 기본값 최신순
+        let search = req.query.search || '';
+
+        let order = [['id', 'DESC']]; // 최신순 (기본값)
+
+        if (sort === 'popular') {
+            order = [['like', 'DESC'], ['id', 'DESC']]; // 인기순 정렬
+        }
+
+        let whereCondition = {}; // 검색 조건 추가
+
+        if (search) {
+            whereCondition = {
+                [Op.or]: [
+                    { p_content: { [Op.like]: `%${search}%` } }, // 게시글 내용 검색
+                    { '$User.nickname$': { [Op.like]: `%${search}%` } } // 작성자 닉네임 검색
+                ]
+            };
+        }
 
         const post = await Post.findAll({
-            include:[
+            include: [
                 {
                     model: User,
                     attributes: ['nickname']
                 }
             ],
+            where: whereCondition, // 검색 조건 적용
+            order: order, // 정렬 조건 적용
             limit: limit,
             offset: offset
         });
 
         response.result = post;
         res.status(200).send(response);
-    } catch(e) {
-        console.log(e);
+    } catch (e) {
+        console.error(e);
         next(e);
     }
 });
@@ -45,7 +67,8 @@ router.get('/this', async (req, res, next) => {
             raw : true
         });
 
-        res.send(post);
+        response.result = post;
+        res.status(200).send(response);
     } catch(e) {
         console.log(e);
         next(e);
