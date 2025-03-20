@@ -29,6 +29,45 @@
             width: auto;
             margin-right: 5px;
         }
+        .post-container {
+            margin: 80px auto 20px;
+            width: 50%;
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .post-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .post-info {
+            font-size: 14px;
+            color: gray;
+            margin-bottom: 10px;
+        }
+        .post-content {
+            width: 100%;
+            height: 150px;
+            font-size: 16px;
+            margin-bottom: 10px;
+            padding: 10px;
+            resize: none;
+        }
+        .like-btn {
+            display: block;
+            margin: 0 auto;
+            font-size: 24px;
+            border: none;
+            background: none;
+            cursor: pointer;
+        }
+        .like-count {
+            text-align: center;
+            font-size: 16px;
+            margin-top: 5px;
+        }
     </style>
 </head>
 <body>
@@ -37,5 +76,49 @@
             <img src="/logo.png" alt="Logo"> DetoxTrip
         </div>
     </header>
+    
+    <div class="post-container">
+        <div class="post-title" id="post-title"></div>
+        <div class="post-info" id="post-info"></div>
+        <textarea class="post-content" id="post-content" readonly></textarea>
+        <button class="like-btn" id="like-btn">👍</button>
+        <div class="like-count" id="like-count"></div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const postId = urlParams.get("id");
+            if (!postId) {
+                alert("잘못된 접근입니다.");
+                return;
+            }
+
+            try {
+                const response = await fetch(`/posts/this?id=${postId}`);
+                const data = await response.json();
+                if (!data.result) {
+                    alert("게시글을 불러올 수 없습니다.");
+                    return;
+                }
+
+                const nickname = data.result.post.User.nickname;
+                const title = data.result.post.title
+                const p_posted_time = data.result.post.p_posted_time;
+                const p_content = data.result.post.p_content;
+                const like = data.result.post.like;
+
+                const formattedDate = p_posted_time.toISOString().slice(0, 19).replace("T", " ");
+
+                document.getElementById("post-title").textContent = title;
+                document.getElementById("post-info").textContent = `${nickname} | ${formattedDate}`;
+                document.getElementById("post-content").value = p_content;
+                document.getElementById("like-count").textContent = like;
+            } catch (error) {
+                console.error("데이터를 불러오는 중 오류 발생:", error);
+                alert("데이터를 불러오는 중 오류가 발생했습니다.");
+            }
+        });
+    </script>
 </body>
 </html>

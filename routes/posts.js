@@ -60,14 +60,22 @@ router.get('/', async (req, res, next) => {
 //게시글 선택 조회
 router.get('/this', async (req, res, next) => {
     try {
-        const {post_id} = req.query;
+        const {id} = req.query;
 
         const post = await Post.findOne({
-            where : {id : post_id},
-            raw : true
+            where: {id},
+            include: [
+                {model: Comment},
+                {model: User, attributes: ['nickname']}
+            ]
         });
 
-        response.result = post;
+        const isOwner = post.user_id === req.user.id;
+
+        response.result = {
+            post,
+            isOwner
+        };
         res.status(200).send(response);
     } catch(e) {
         console.log(e);
@@ -97,10 +105,10 @@ router.post('/', async (req, res, next) => {
 //댓글 등록
 router.post('/comment', async (req, res, next) => {
     try {
-        const {post_id, c_content, c_posted_time} = req.body;
+        const {id, c_content, c_posted_time} = req.body;
 
         await Comment.create({
-            post_id,
+            post_id : id,
             c_content,
             c_posted_time,
             user_id : req.user.id
