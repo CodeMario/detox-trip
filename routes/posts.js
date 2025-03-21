@@ -86,16 +86,17 @@ router.get('/this', async (req, res, next) => {
 //게시글 등록
 router.post('/', async (req, res, next) => {
     try {
-        const {title, p_content, p_posted_time} = req.body;
+        const {title, p_content} = req.body;
 
         await Post.create({
             title,
             p_content,
-            p_posted_time,
+            p_posted_time: new Date(),
             user_id : req.user.id
         });
 
-        res.send('ok');
+        response.result = true;
+        res.status(200).send(response);
     } catch(e) {
         console.log(e);
         next(e);
