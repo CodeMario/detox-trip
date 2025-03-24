@@ -64,10 +64,15 @@ router.get('/this', async (req, res, next) => {
 
         const post = await Post.findOne({
             where: {id},
-            include: [
-                {model: Comment},
-                {model: User, attributes: ['nickname']}
-            ]
+            include: [{
+                    model: Comment,
+                    include: 
+                    {model: User,
+                        attributes: ['nickname']}},
+                {
+                    model: User,
+                    attributes: ['nickname']}
+                ]
         });
 
         const isOwner = post.user_id === req.user.id;
@@ -106,16 +111,19 @@ router.post('/', async (req, res, next) => {
 //댓글 등록
 router.post('/comment', async (req, res, next) => {
     try {
-        const {id, c_content, c_posted_time} = req.body;
+        const {id, c_content} = req.body;
+
+        console.log(id,c_content)
 
         await Comment.create({
             post_id : id,
             c_content,
-            c_posted_time,
+            c_posted_time: new Date(),
             user_id : req.user.id
         });
 
-        res.send('ok');
+        response.result = true;
+        res.status(200).send(response);
     } catch(e) {
         console.log(e);
         next(e);

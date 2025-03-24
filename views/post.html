@@ -30,12 +30,14 @@
             margin-right: 5px;
         }
         .post-container {
+            width: 600px;
+            max-width: 100%;
             margin: 80px auto 20px;
-            width: 50%;
             border: 1px solid #ddd;
             padding: 20px;
             border-radius: 10px;
             box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+            box-sizing: border-box;  /* 패딩과 테두리를 포함한 크기 계산 */
         }
         .post-title {
             font-size: 24px;
@@ -54,6 +56,7 @@
             margin-bottom: 10px;
             padding: 10px;
             resize: none;
+            box-sizing: border-box;  /* 패딩과 테두리를 포함한 크기 계산 */
         }
         .like-btn {
             display: block;
@@ -67,6 +70,76 @@
             text-align: center;
             font-size: 16px;
             margin-top: 5px;
+        }
+        .back-btn {
+            display: block;
+            width: 120px;
+            margin: 20px auto;
+            padding: 10px;
+            font-size: 14px;
+            background-color: #ccc;
+            color: black;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .back-btn:hover {
+            background-color: #bbb;
+        }
+        .comment-section,
+        .comment-list {
+            display: flex;
+            flex-direction: column;
+            width: inherit;
+            max-width: 600px;
+            margin: 0 auto;
+            box-sizing: border-box;
+            height: 300px;  /* 원하는 높이 설정 */
+            overflow-y: auto;  /* 스크롤이 가능하도록 설정 */
+            border: 1px solid #ddd;
+            padding: 10px;
+        }
+
+        .comment-input-container {
+            display: flex; /* 수평 정렬을 위해 flex 사용 */
+            width: 100%; /* 부모의 너비에 맞게 */
+            gap: 10px; /* 버튼과 textarea 간 간격 설정 */
+            margin-bottom: 10px;
+        }
+        .comment-input {
+            flex: 1; /* 가로 크기를 최대화 */
+            height: 40px;
+            padding: 10px;
+            font-size: 14px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            resize: none;
+        }
+        .comment-save-btn {
+            height: 40px;
+            padding: 0 15px;
+            font-size: 14px;
+            background-color: #144e37;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .comment-save-btn:hover {
+            background-color: #0f3a27;
+        }
+        .comment-item {
+            border-bottom: 1px solid #ddd;
+            padding: 10px 0;
+        }
+        .comment-user {
+            font-weight: bold;
+        }
+        .comment-time {
+            font-size: 12px;
+            color: gray;
         }
     </style>
 </head>
@@ -85,10 +158,21 @@
         <div class="like-count" id="like-count"></div>
     </div>
 
+    <button class="back-btn" onclick="location.href='community.html'">돌아가기</button>
+
+    <div class="comment-section">
+        <div class="comment-input-container">
+            <textarea class="comment-input" placeholder="댓글을 작성하세요"></textarea>
+            <button class="comment-save-btn">저장</button>
+        </div>
+        <div class="comment-list"></div>
+    </div>
+
     <script>
         document.addEventListener("DOMContentLoaded", async () => {
             const urlParams = new URLSearchParams(window.location.search);
             const postId = urlParams.get("id");
+
             if (!postId) {
                 alert("잘못된 접근입니다.");
                 return;
@@ -97,26 +181,138 @@
             try {
                 const response = await fetch(`/posts/this?id=${postId}`);
                 const data = await response.json();
+
                 if (!data.result) {
                     alert("게시글을 불러올 수 없습니다.");
                     return;
                 }
 
-                const nickname = data.result.post.User.nickname;
-                const title = data.result.post.title
-                const p_posted_time = data.result.post.p_posted_time;
-                const p_content = data.result.post.p_content;
-                const like = data.result.post.like;
-
-                const formattedDate = p_posted_time.toISOString().slice(0, 19).replace("T", " ");
+                const post = data.result.post;
+                const nickname = post.User.nickname;
+                const title = post.title;
+                const p_content = post.p_content;
+                const like = post.like;
+                const p_posted_time = post.p_posted_time;
+                const formattedDate = new Date(p_posted_time).toISOString().slice(0, 19).replace("T", " ");
 
                 document.getElementById("post-title").textContent = title;
                 document.getElementById("post-info").textContent = `${nickname} | ${formattedDate}`;
                 document.getElementById("post-content").value = p_content;
                 document.getElementById("like-count").textContent = like;
+
+                // 댓글 출력 부분
+                const commentSection = document.querySelector('.comment-section');
+                const commentList = document.querySelector('.comment-list');  // comment-list 선택
+
+                if (post.Comments && post.Comments.length > 0) {
+                    post.Comments.forEach(comment => {
+                        const commentElement = document.createElement('div');
+                        commentElement.classList.add('comment-item');
+
+                        const commentUser = comment.User.nickname;
+                        const commentContent = comment.c_content;
+                        const commentTime = new Date(comment.c_posted_time).toISOString().slice(0, 19).replace("T", " ");
+
+                        commentElement.innerHTML = `
+                            <strong>${commentUser}</strong> <span>${commentTime}</span><br>
+                            <p>${commentContent}</p>
+                        `;
+
+                        commentList.appendChild(commentElement);
+                    });
+                } else {
+                    const noComments = document.createElement('p');
+                    noComments.textContent = "댓글이 없습니다.";
+                    commentList.appendChild(noComments);
+                }
             } catch (error) {
                 console.error("데이터를 불러오는 중 오류 발생:", error);
                 alert("데이터를 불러오는 중 오류가 발생했습니다.");
+            }
+
+            // 댓글 저장 버튼에 이벤트 리스너 추가
+            const saveButton = document.querySelector('.comment-save-btn');  // class로 선택
+            saveButton.addEventListener("click", async () => {
+                const commentContent = document.querySelector('.comment-input').value.trim();
+
+                if (!commentContent) {
+                    alert("댓글을 입력해주세요.");
+                    return;
+                }
+
+                try {
+                    const response = await fetch("/posts/comment", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({ id: postId, c_content: commentContent })
+                    });
+
+                    const result = await response.json();
+
+                    if (result.result === true) { // 댓글 저장 성공
+                        document.querySelector('.comment-input').value = ""; // 텍스트 영역 초기화
+                        loadComments(postId, 0);
+                        location.reload();
+                    } else {
+                        alert("댓글 작성에 실패했습니다.");
+                    }
+                } catch (error) {
+                    console.error("댓글 저장 중 오류 발생:", error);
+                    alert("서버 오류가 발생했습니다.");
+                }
+            });
+
+            // 무한 스크롤 구현
+            const commentList = document.querySelector('.comment-list');
+            let currentPage = 0;
+            let isLoading = false;
+
+            // 스크롤 이벤트 처리
+            commentList.addEventListener("scroll", () => {
+                const scrollPosition = commentList.scrollTop + commentList.clientHeight;  // 스크롤 위치 + 보이는 높이
+                const documentHeight = commentList.scrollHeight;  // 전체 콘텐츠 높이
+
+                if (scrollPosition >= documentHeight - 10 && !isLoading) {  // 바닥에 도달
+                    isLoading = true;
+                    loadComments(postId, currentPage)  // 댓글 로드
+                        .finally(() => {
+                            isLoading = false;
+                        });
+                }
+            });
+
+            async function loadComments(postId, page) {
+                try {
+                    const response = await fetch(`/posts/comment?id=${postId}&page=${page}`);
+                    const data = await response.json();
+
+                    if (data.success && data.comment.length > 0) {
+                        data.comment.forEach(comment => {
+                            const commentElement = document.createElement("div");
+                            commentElement.classList.add("comment-item");
+
+                            const nickname = comment.User.nickname;
+                            const content = comment.c_content;
+                            const postedTime = new Date(comment.c_posted_time).toISOString().slice(0, 19).replace("T", " ");
+
+                            commentElement.innerHTML = `
+                                <div class="comment-user">${nickname}</div>
+                                <div class="comment-content">${content}</div>
+                                <div class="comment-time">${postedTime}</div>
+                            `;
+
+                            commentList.appendChild(commentElement);
+                        });
+
+                        currentPage++;
+                    } else {
+                        alert("더 이상 댓글이 없습니다.");
+                    }
+                } catch (error) {
+                    console.error("댓글을 불러오는 중 오류 발생:", error);
+                }
             }
         });
     </script>
