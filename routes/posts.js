@@ -130,6 +130,18 @@ router.post('/comment', async (req, res, next) => {
     }
 });
 
+router.post('/like', async (req, res, next)=> {
+    try {
+        const {id} = req.body;
+
+        
+
+    } catch(e) {
+        console.log(e);
+        next(e)
+    }
+});
+
 //게시글 수정
 router.post('/update', async (req, res, next) => {
     try {
