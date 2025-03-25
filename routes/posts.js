@@ -1,9 +1,10 @@
 const express = require('express');
 
+const { Model } = require('sequelize');
 const Post = require('../models/post');
 const Comment = require('../models/comment');
-const { Model } = require('sequelize');
 const User = require('../models/user');
+const Reaction = require('../models/reaction');
 const { Op } = require('sequelize');
 
 const router = express.Router();
@@ -77,9 +78,14 @@ router.get('/this', async (req, res, next) => {
 
         const isOwner = post.user_id === req.user.id;
 
+        const hasReaction = await Reaction.findOne({
+            where: { user_id: req.user.id, post_id: id }
+        }) ? true : false;
+
         response.result = {
             post,
-            isOwner
+            isOwner,
+            hasReaction
         };
         res.status(200).send(response);
     } catch(e) {
@@ -134,8 +140,17 @@ router.post('/like', async (req, res, next)=> {
     try {
         const {id} = req.body;
 
-        
+        const post = await Post.findByPk(id);
+        post.like += 1;
+        await post.save();
 
+        await Reaction.create({
+            user_id : req.user.id,
+            post_id : id
+        })
+
+        response.result = true;
+        res.status(200).send(response);
     } catch(e) {
         console.log(e);
         next(e)
