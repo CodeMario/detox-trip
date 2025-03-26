@@ -49,6 +49,11 @@
             color: gray;
             margin-bottom: 10px;
         }
+        .post-action-btn {
+            font-size: 14px;
+            color: gray;
+            cursor: pointer;
+        }
         .post-content {
             width: 100%;
             height: 150px;
@@ -65,6 +70,7 @@
             border: none;
             background: none;
             cursor: pointer;
+            color: inherit;
         }
         .like-count {
             text-align: center;
@@ -84,7 +90,6 @@
             cursor: pointer;
             text-align: center;
         }
-
         .back-btn:hover {
             background-color: #bbb;
         }
@@ -92,16 +97,15 @@
         .comment-list {
             display: flex;
             flex-direction: column;
-            width: inherit;
-            max-width: 600px;
+            width: 100%; /* 부모 요소에 맞게 너비 고정 */
+            max-width: 600px; /* 최대 너비 설정 */
             margin: 0 auto;
             box-sizing: border-box;
-            height: 300px;  /* 원하는 높이 설정 */
-            overflow-y: auto;  /* 스크롤이 가능하도록 설정 */
+            height: 300px; /* 원하는 높이 설정 */
+            overflow-y: auto; /* 스크롤이 가능하도록 설정 */
             border: 1px solid #ddd;
             padding: 10px;
         }
-
         .comment-input-container {
             display: flex; /* 수평 정렬을 위해 flex 사용 */
             width: 100%; /* 부모의 너비에 맞게 */
@@ -141,6 +145,29 @@
             font-size: 12px;
             color: gray;
         }
+        .buttons-container {
+            display: flex;
+            justify-content: flex-end; /* 오른쪽 정렬 */
+            gap: 10px; /* 버튼 사이 간격 */
+            align-items: center; /* 수직 정렬 */
+        }
+
+        .edit-btn, .delete-btn {
+            padding: 10px 20px;
+            font-size: 14px;
+            background-color: #144e37;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .edit-btn:hover, .delete-btn:hover {
+            background-color: #0f3a27;
+        }
+        .post-container {
+            position: relative;
+        }
     </style>
 </head>
 <body>
@@ -154,8 +181,10 @@
         <div class="post-title" id="post-title"></div>
         <div class="post-info" id="post-info"></div>
         <textarea class="post-content" id="post-content" readonly></textarea>
-        <button class="like-btn" id="like-btn">👍</button>
+        <button class="like-btn" id="like-btn"></button>
         <div class="like-count" id="like-count"></div>
+
+        <div class="buttons-container" id="buttons-container"></div>
     </div>
 
     <button class="back-btn" onclick="location.href='community.html'">돌아가기</button>
@@ -187,6 +216,8 @@
                     return;
                 }
 
+                updateLikeButton(data.result.hasReaction);
+
                 const post = data.result.post;
                 const nickname = post.User.nickname;
                 const title = post.title;
@@ -199,6 +230,46 @@
                 document.getElementById("post-info").textContent = `${nickname} | ${formattedDate}`;
                 document.getElementById("post-content").value = p_content;
                 document.getElementById("like-count").textContent = like;
+
+                if (data.result.isOwner) {
+                    const buttonsContainer = document.getElementById("buttons-container");
+
+                    // 수정 버튼
+                    const editButton = document.createElement("button");
+                    editButton.textContent = "수정";
+                    editButton.classList.add("edit-btn");
+                    editButton.addEventListener("click", () => {
+                        location.href = `post.html?id=${postId}`;
+                    });
+
+                    // 삭제 버튼
+                    const deleteButton = document.createElement("button");
+                    deleteButton.textContent = "삭제";
+                    deleteButton.classList.add("delete-btn");
+                    deleteButton.addEventListener("click", async () => {
+                        const confirmDelete = confirm("정말 삭제하시겠습니까?");
+                        if (confirmDelete) {
+                            try {
+                                const res = await fetch(`/posts/delete?id=${postId}`, {
+                                    method: "GET"
+                                });
+
+                                if (res.ok) {
+                                    alert("게시글이 삭제되었습니다.");
+                                    location.href = "community.html"; // 삭제 후 community.html로 이동
+                                } else {
+                                    alert("게시글 삭제에 실패했습니다.");
+                                }
+                            } catch (error) {
+                                console.error("삭제 중 오류 발생:", error);
+                                alert("삭제 요청에 오류가 발생했습니다.");
+                            }
+                        }
+                    });
+
+                    buttonsContainer.appendChild(editButton);
+                    buttonsContainer.appendChild(deleteButton);
+                }
 
                 // 댓글 출력 부분
                 const commentSection = document.querySelector('.comment-section');
@@ -220,15 +291,35 @@
 
                         commentList.appendChild(commentElement);
                     });
-                } else {
-                    const noComments = document.createElement('p');
-                    noComments.textContent = "댓글이 없습니다.";
-                    commentList.appendChild(noComments);
                 }
             } catch (error) {
                 console.error("데이터를 불러오는 중 오류 발생:", error);
                 alert("데이터를 불러오는 중 오류가 발생했습니다.");
             }
+
+            const likeButton = document.getElementById("like-btn");
+            likeButton.addEventListener("click", async function () {
+                if (likeButton.disabled) return; // 이미 추천한 경우 클릭 방지
+
+                try {
+                    const res = await fetch("/posts/like", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({ id: postId })
+                    });
+
+                    if (res.ok) {
+                        updateLikeButton(true);
+                        location.reload();
+                    } else {
+                        console.error("Failed to like the post");
+                    }
+                } catch (error) {
+                    console.error("Error sending like request:", error);
+                }
+            });
 
             // 댓글 저장 버튼에 이벤트 리스너 추가
             const saveButton = document.querySelector('.comment-save-btn');  // class로 선택
@@ -315,6 +406,18 @@
                 }
             }
         });
+
+        function updateLikeButton(hasReaction) {
+            const likeButton = document.getElementById("like-btn");
+
+            if (hasReaction) {
+                likeButton.disabled = true;  // 버튼 비활성화
+                likeButton.textContent = "♥"; // 추천 완료 상태 표시
+            } else {
+                likeButton.disabled = false; // 버튼 활성화
+                likeButton.textContent = "♡"; // 추천 가능 상태 표시
+            }
+        }
     </script>
 </body>
 </html>

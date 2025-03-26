@@ -180,13 +180,14 @@ router.post('/update', async (req, res, next) => {
 //게시글 삭제
 router.get('/delete', async (req, res, next) => {
     try {
-        const {post_id} = req.query;
+        const {id} = req.query;
 
         await Post.destroy({
-            where : {id : post_id}
+            where : {id}
         });
 
-        res.send('ok');
+        response.result = true;
+        res.status(200).send(response);
     } catch(e) {
         console.log(e);
         next(e);
@@ -202,7 +203,8 @@ router.get('/delete', async (req, res, next) => {
             where : {id : comment_id}
         });
 
-        res.send('ok');
+        response.result = true;
+        res.status(200).send(response);
     } catch(e) {
         console.log(e);
         next(e);
