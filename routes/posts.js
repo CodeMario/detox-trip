@@ -160,17 +160,17 @@ router.post('/like', async (req, res, next)=> {
 //게시글 수정
 router.post('/update', async (req, res, next) => {
     try {
-        const {post_id, title, p_content, like} = req.body;
+        const {id, title, p_content} = req.body;
 
         await Post.update({
             title,
-            p_content,
-            like
+            p_content
         }, {
-            where : {id : post_id}
+            where : {id}
         });
 
-        res.send('ok');
+        response.result = true;
+        res.status(200).send(response);
     } catch(e) {
         console.log(e);
         next(e);

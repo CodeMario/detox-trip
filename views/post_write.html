@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>DetoxTrip - 게시글 작성</title>
+    <title>DetoxTrip - 게시글 작성 및 수정</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -88,6 +88,21 @@
     </div>
 
     <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const postId = urlParams.get("id");
+
+        if (postId) {
+            // 글 수정 모드: 기존 데이터 불러오기
+            fetch(`/posts/this?id=${postId}`)
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data)
+                    document.getElementById("title").value = data.result.post.title;
+                    document.getElementById("p_content").value = data.result.post.p_content;
+                })
+                .catch(error => console.error("Error fetching post data:", error));
+        }
+
         function savePost() {
             const title = document.getElementById("title").value.trim();
             const content = document.getElementById("p_content").value.trim();
@@ -97,19 +112,20 @@
                 return;
             }
             
-            fetch("/posts", {
+            const endpoint = postId ? "/posts/update" : "/posts";
+            const bodyData = postId ? { id: postId, title, p_content: content } : { title, p_content: content };
+            
+            fetch(endpoint, {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ title, p_content: content })
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(bodyData)
             })
             .then(response => {
                 if (response.ok) {
-                    alert("게시글이 등록되었습니다.");
-                    window.location.href = "community.html";
+                    alert(postId ? "게시글이 수정되었습니다." : "게시글이 등록되었습니다.");
+                    window.location.href = postId ? `post.html?id=${postId}` : "community.html";
                 } else {
-                    alert("게시글 등록에 실패했습니다.");
+                    alert("게시글 처리에 실패했습니다.");
                 }
             })
             .catch(error => {
@@ -119,7 +135,7 @@
         }
 
         function cancelPost() {
-            window.location.href = "community.html";
+            window.location.href = postId ? `post.html?id=${postId}` : "community.html";
         }
     </script>
 </body>
