@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>DetoxTrip</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            border-bottom: 1px solid #ddd;
+            width: 100%;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background: white;
+            z-index: 1000;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            color: #144e37;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        .logo img {
+            height: 24px;
+            width: auto;
+            margin-right: 5px;
+        }
+        .container {
+            margin-top: 80px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 60vh;
+        }
+        .box {
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 20px;
+            width: 300px;
+            background: #f9f9f9;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .box h2 {
+            margin-bottom: 20px;
+        }
+        .info {
+            text-align: left;
+            margin-bottom: 15px;
+        }
+        .info label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+        }
+        .info input {
+            width: calc(100% - 16px);
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background: #eee;
+            pointer-events: none;
+            text-align: left;
+        }
+        .buttons {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .buttons button {
+            width: 48%;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .logout {
+            background: #4CAF50;
+            color: white;
+        }
+        .delete {
+            background: #f44336;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <img src="/logo.png" alt="Logo"> DetoxTrip
+        </div>
+    </header>
+    <div class="container">
+        <div class="box">
+            <h2>마이페이지</h2>
+            <div class="info">
+                <label for="nickname">닉네임</label>
+                <input type="text" id="nickname" readonly>
+            </div>
+            <div class="info">
+                <label for="login_id">아이디</label>
+                <input type="text" id="login_id" readonly>
+            </div>
+            <div class="buttons">
+                <button class="logout" onclick="logout()">로그아웃</button>
+                <button class="delete" onclick="deleteAccount()">회원탈퇴</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            fetch("/users/me")
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("nickname").value = data.result.nickname;
+                    document.getElementById("login_id").value = data.result.login_id;
+                })
+                .catch(error => console.error("Error fetching user data:", error));
+        });
+
+        function logout() {
+            fetch("/auth/logout", { method: "GET" })
+                .then(() => window.location.href = "/index.html")
+                .catch(error => console.error("Error logging out:", error));
+        }
+
+        function deleteAccount() {
+            fetch("/users/delete", { method: "GET" })
+                .then(() => window.location.href = "/index.html")
+                .catch(error => console.error("Error deleting account:", error));
+        }
+    </script>
+</body>
+</html>

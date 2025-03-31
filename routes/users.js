@@ -109,7 +109,8 @@ router.get('/delete', async (req, res, next) => {
             if (e) { 
               return next(err);
           }
-          res.send('ok');
+          response.result = true;
+          res.status(200).send(response);
           });
     } catch(e) {
         console.error(e);
