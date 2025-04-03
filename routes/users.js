@@ -41,6 +41,21 @@ router.get('/me', async (req, res, next) => {
     };
 });
 
+//비상 연락처 목록
+router.get('/emergency-contact', async (req, res, next) => {
+    try {
+        const emergency = await Emergency.findAll({
+            where: {user_id : req.user.id}
+        });
+
+        response.result = emergency;
+        res.status(200).send(response);
+    } catch(e) {
+        console.log(e);
+        next(e);
+    }
+});
+
 //아이디 중복 확인
 router.get('/check-duplication', async (req, res, next) => {
     try {
@@ -123,7 +138,7 @@ router.post('/emergency-contact', async (req, res, next) => {
     try {
         const {contact_name, phone_number} = req.body
         if (await Emergency.findOne({where : {phone_number, user_id : req.user.id}})){
-            res.send('전화번호 중복');
+            response.result = false;
         }
         else {
             await Emergency.create({
@@ -131,8 +146,9 @@ router.post('/emergency-contact', async (req, res, next) => {
                 phone_number,
                 user_id : req.user.id
             });
-            res.send('ok')
+            response.result = true;
         }
+        res.status(200).send(response);
     } catch (e) {
         console.error(e);
         next(e);
@@ -146,8 +162,8 @@ router.get('/emergency-contact/delete', async (req, res, next) => {
         await Emergency.destroy({
             where : {phone_number, user_id : req.user.id}
         });
-        res.send('ok');
-        
+        response.result = true;
+        res.status(200).send(response);
     } catch (e) {
         console.error(e);
         next(e);
@@ -155,10 +171,13 @@ router.get('/emergency-contact/delete', async (req, res, next) => {
 });
 
 //비상 메시지 전송
+//twillo로 임시 코드 만들어보기
+//위치정보는 Geolocation API 이용해보면 될듯?
 router.post('/sms', async (req, res, next) => {
     try {
-        console.log('예정')
         
+        response.result = true;
+        res.status(200).send(response);
     } catch (e) {
         console.error(e);
         next(e);
