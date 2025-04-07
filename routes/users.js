@@ -3,6 +3,7 @@ const bcrypt = require('bcrypt')
 
 const User = require('../models/user');
 const Emergency = require('../models/emergency');
+const {sendSMS} = require('../middlewares/smsHandler');
 
 const router = express.Router();
 
@@ -171,11 +172,10 @@ router.get('/emergency-contact/delete', async (req, res, next) => {
 });
 
 //비상 메시지 전송
-//twillo로 임시 코드 만들어보기
 //위치정보는 Geolocation API 이용해보면 될듯?
-router.post('/sms', async (req, res, next) => {
+router.get('/sms', async (req, res, next) => {
     try {
-        
+        //sendSMS();
         response.result = true;
         res.status(200).send(response);
     } catch (e) {
