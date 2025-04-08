@@ -30,6 +30,10 @@ module.exports = class User extends Sequelize.Model {
             is_active : {
                 type : Sequelize.BOOLEAN,
                 defaultValue : true
+            },
+            is_agree_location : {
+                type : Sequelize.BOOLEAN,
+                defaultValue : false
             }
         },{
             sequelize,

@@ -159,9 +159,9 @@ router.post('/emergency-contact', async (req, res, next) => {
 //비상 연락처 삭제
 router.get('/emergency-contact/delete', async (req, res, next) => {
     try {
-        const phone_number = req.query;
+        const { id } = req.query;
         await Emergency.destroy({
-            where : {phone_number, user_id : req.user.id}
+            where : {id}
         });
         response.result = true;
         res.status(200).send(response);
@@ -175,6 +175,7 @@ router.get('/emergency-contact/delete', async (req, res, next) => {
 //위치정보는 Geolocation API 이용해보면 될듯?
 router.get('/sms', async (req, res, next) => {
     try {
+        const {latitude, longitude} = req.query;
         //sendSMS();
         response.result = true;
         res.status(200).send(response);

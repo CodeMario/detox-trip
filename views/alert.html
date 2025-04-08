@@ -72,66 +72,171 @@
         .add-btn.hidden {
             display: none;
         }
+
+        /* 모달 스타일 */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+        .modal {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            width: 300px;
+        }
+        .modal input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+        .modal button {
+            padding: 8px 12px;
+            margin-left: 5px;
+        }
     </style>
 </head>
 <body>
-    <header>
-        <div class="logo">
-            <img src="/logo.png" alt="Logo"> DetoxTrip
-        </div>
-    </header>
-    <div class="container">
-        <h2>비상 연락처 목록</h2>
-        <ul id="contactList" class="contact-list"></ul>
-        <button id="addContactBtn" class="add-btn">+</button>
+<header>
+    <div class="logo">
+        <img src="/logo.png" alt="Logo"> DetoxTrip
     </div>
-    <script>
-        async function fetchEmergencyContacts() {
-            try {
-                const response = await fetch('/users/emergency-contact');
-                const contacts = await response.json();
-                renderContactList(contacts);
-            } catch (error) {
-                console.error('비상 연락처를 불러오는 중 오류 발생:', error);
-            }
-        }
+</header>
 
-        function renderContactList(contacts) {
-            const contactList = document.getElementById('contactList');
-            const addContactBtn = document.getElementById('addContactBtn');
-            contactList.innerHTML = '';
-            
-            contacts.forEach(contact => {
-                const li = document.createElement('li');
-                li.classList.add('contact-item');
-                li.innerHTML = `
-                    <span>${contact.contact_name} - ${contact.phone_number}</span>
-                    <button class="delete-btn" onclick="deleteContact(${contact.id})">X</button>
-                `;
-                contactList.appendChild(li);
-            });
-            
-            if (contacts.length >= 5) {
-                addContactBtn.classList.add('hidden');
-            } else {
-                addContactBtn.classList.remove('hidden');
-            }
-        }
+<div class="container">
+    <h2>비상 연락처 목록</h2>
+    <ul id="contactList" class="contact-list"></ul>
+    <button id="addContactBtn" class="add-btn">+</button>
+</div>
 
-        async function deleteContact(id) {
-            try {
-                await fetch(`/users/emergency-contact/${id}`, { method: 'DELETE' });
-                fetchEmergencyContacts();
-            } catch (error) {
-                console.error('비상 연락처 삭제 중 오류 발생:', error);
-            }
-        }
+<div id="modalContainer" style="display: none;"></div>
 
-        document.getElementById('addContactBtn').addEventListener('click', function() {
-            alert('새 연락처 추가 기능은 아직 구현되지 않았습니다.');
+<script>
+    async function fetchEmergencyContacts() {
+        try {
+            const response = await fetch('/users/emergency-contact');
+            const result = await response.json();
+            const contacts = result.result;
+            renderContactList(contacts);
+        } catch (error) {
+            console.error('비상 연락처를 불러오는 중 오류 발생:', error);
+        }
+    }
+
+    function renderContactList(contacts) {
+        const contactList = document.getElementById('contactList');
+        const addContactBtn = document.getElementById('addContactBtn');
+        contactList.innerHTML = '';
+
+        contacts.forEach(contact => {
+            const li = document.createElement('li');
+            li.classList.add('contact-item');
+            li.innerHTML = `
+                <span>${contact.contact_name}   ${contact.phone_number}</span>
+                <button class="delete-btn" onclick="deleteContact(${contact.id})">X</button>
+            `;
+            contactList.appendChild(li);
         });
 
-        fetchEmergencyContacts();
-    </script>
+        if (contacts.length >= 5) {
+            addContactBtn.classList.add('hidden');
+        } else {
+            addContactBtn.classList.remove('hidden');
+        }
+    }
+
+    function deleteContact(id) {
+        if (!confirm('정말 삭제하시겠습니까?')) {
+            return;
+        }
+
+        fetch(`/users/emergency-contact/delete?id=${id}`, {
+            method: 'GET',
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('삭제 실패');
+            }
+            return response.json();
+        })
+        .then(data => {
+            alert('삭제되었습니다.');
+            location.href = "alert.html";
+        })
+        .catch(error => {
+            console.error('삭제 중 오류 발생:', error);
+            alert('삭제 중 오류가 발생했습니다.');
+        });
+    }
+
+    document.getElementById('addContactBtn').addEventListener('click', function() {
+        showModal();
+    });
+
+    function showModal() {
+        const modalHTML = `
+            <div class="modal-overlay">
+                <div class="modal">
+                    <h3>비상 연락처 추가</h3>
+                    <input type="text" id="contactName" placeholder="이름 입력">
+                    <input type="text" id="contactPhone" placeholder="전화번호 입력 (숫자만)">
+                    <div style="text-align: right;">
+                        <button id="saveBtn" disabled>등록</button>
+                        <button id="cancelBtn">취소</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        const modalContainer = document.getElementById('modalContainer');
+        modalContainer.innerHTML = modalHTML;
+        modalContainer.style.display = 'block';
+
+        const nameInput = document.getElementById('contactName');
+        const phoneInput = document.getElementById('contactPhone');
+        const saveBtn = document.getElementById('saveBtn');
+        const cancelBtn = document.getElementById('cancelBtn');
+
+        nameInput.addEventListener('input', checkForm);
+        phoneInput.addEventListener('input', function () {
+            this.value = this.value.replace(/[^0-9]/g, '').slice(0, 11);
+            checkForm();
+        });
+
+        cancelBtn.addEventListener('click', function () {
+            modalContainer.style.display = 'none';
+        });
+
+        saveBtn.addEventListener('click', async function () {
+            const contact_name = nameInput.value.trim();
+            const phone_number = phoneInput.value.trim();
+            try {
+                await fetch('/users/emergency-contact', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contact_name, phone_number })
+                });
+                modalContainer.style.display = 'none';
+                fetchEmergencyContacts();
+            } catch (error) {
+                console.error('비상 연락처 등록 중 오류 발생:', error);
+            }
+        });
+
+        function checkForm() {
+            if (nameInput.value.trim() && phoneInput.value.trim().length === 11) {
+                saveBtn.disabled = false;
+            } else {
+                saveBtn.disabled = true;
+            }
+        }
+    }
+
+    fetchEmergencyContacts();
+</script>
 </body>
 </html>
