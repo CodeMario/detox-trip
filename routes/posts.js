@@ -69,7 +69,7 @@ router.get('/this', async (req, res, next) => {
                     model: Comment,
                     include: 
                     {model: User,
-                        attributes: ['nickname']}},
+                    attributes: ['nickname']}},
                 {
                     model: User,
                     attributes: ['nickname']}

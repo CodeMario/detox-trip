@@ -46,7 +46,11 @@ router.get('/me', async (req, res, next) => {
 router.get('/emergency-contact', async (req, res, next) => {
     try {
         const emergency = await Emergency.findAll({
-            where: {user_id : req.user.id}
+            where: {user_id : req.user.id},
+            include : [{
+                model : User,
+                attributes: ['is_agree_location']
+            }]
         });
 
         response.result = emergency;
@@ -175,8 +179,9 @@ router.get('/emergency-contact/delete', async (req, res, next) => {
 //위치정보는 Geolocation API 이용해보면 될듯?
 router.get('/sms', async (req, res, next) => {
     try {
-        const {latitude, longitude} = req.query;
-        //sendSMS();
+        const {latitude, longitude ,address} = req.query;
+        const address_list = address.split(',');
+        //sendSMS(latitude, longitude, address_list[5]+address_list[3]+address_list[2]+address_list[1]+' '+address_list[0]);
         response.result = true;
         res.status(200).send(response);
     } catch (e) {
