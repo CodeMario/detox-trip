@@ -8,6 +8,7 @@ const router = express.Router();
 
 const response = {result : true}
 
+//목표 시간의 전체 시간 초과 여부 확인
 async function checkTimeAvailability(user_id, target_time) {
     const itinerary = await Itinerary.findOne({
         where : {user_id},

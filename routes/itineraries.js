@@ -22,7 +22,6 @@ router.get('/', async (req, res, next) => {
             }]
         });
         if (itinerary) {
-            // Sequelize 객체를 JSON 객체로 변환
             const itineraryJSON = itinerary.toJSON();
             itineraryJSON.start_date = new Date(itineraryJSON.start_date).toISOString().split('T')[0];
             itineraryJSON.end_date = new Date(itineraryJSON.end_date).toISOString().split('T')[0];

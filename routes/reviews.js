@@ -62,9 +62,9 @@ router.get('/destinations', async (req, res, next) => {
         let page = parseInt(req.query.page) || 1;
         let limit = 10;
         let offset = (page - 1) * limit;
-        let where = {};  // 검색 조건을 담을 객체
+        let where = {};
 
-        // 검색어 처리
+        //검색어 처리
         if (req.query.search) {
             const search = req.query.search;
             where = {
@@ -75,21 +75,22 @@ router.get('/destinations', async (req, res, next) => {
             };
         }
 
+        //정렬 순서 처리
         const order = req.query.sort === 'rating' ? [
-            [sequelize.literal('AVG(review.rating)'), 'DESC']  // 리뷰 테이블을 사용하고 별점 순으로 정렬
-        ] : [];  // 'rating'이 없으면 기본 순서대로
+            [sequelize.literal('AVG(review.rating)'), 'DESC']
+        ] : [];
 
         const { count, rows: destinations } = await Destination.findAndCountAll({
             attributes: ['id', 'region_name', 'country_name', 'address', 'description', 'image_path'],
-            where: where,  // 검색 조건 추가
+            where: where,
             include: [{
-                model: Review, // Review 모델을 포함하여 별점 순으로 정렬
+                model: Review,
                 attributes: [],
-                required: false  // review가 없으면 포함되지 않음
+                required: false
             }],
             limit: limit,
             offset: offset,
-            order: order,  // 정렬 기준 추가
+            order: order,
             raw: true
         });
 

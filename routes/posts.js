@@ -17,22 +17,25 @@ router.get('/', async (req, res, next) => {
         let page = parseInt(req.query.page) || 1;
         let limit = 10;
         let offset = (page - 1) * limit;
-        let sort = req.query.sort || 'latest'; // 기본값 최신순
+        let sort = req.query.sort || 'latest';
         let search = req.query.search || '';
 
-        let order = [['id', 'DESC']]; // 최신순 (기본값)
+        let order = [['id', 'DESC']];
 
         if (sort === 'popular') {
-            order = [['like', 'DESC'], ['id', 'DESC']]; // 인기순 정렬
+            order = [['like', 'DESC'], ['id', 'DESC']];
         }
 
-        let whereCondition = {}; // 검색 조건 추가
+        //검색 조건 추가
+        let whereCondition = {};
 
         if (search) {
             whereCondition = {
                 [Op.or]: [
-                    { p_content: { [Op.like]: `%${search}%` } }, // 게시글 내용 검색
-                    { '$User.nickname$': { [Op.like]: `%${search}%` } } // 작성자 닉네임 검색
+                    //게시글 내용 검색
+                    { p_content: { [Op.like]: `%${search}%` } },
+                    //작성자 닉네임 검색
+                    { '$User.nickname$': { [Op.like]: `%${search}%` } }
                 ]
             };
         }
@@ -44,8 +47,8 @@ router.get('/', async (req, res, next) => {
                     attributes: ['nickname']
                 }
             ],
-            where: whereCondition, // 검색 조건 적용
-            order: order, // 정렬 조건 적용
+            where: whereCondition,
+            order: order,
             limit: limit,
             offset: offset
         });
@@ -136,6 +139,7 @@ router.post('/comment', async (req, res, next) => {
     }
 });
 
+//좋아요 증가
 router.post('/like', async (req, res, next)=> {
     try {
         const {id} = req.body;

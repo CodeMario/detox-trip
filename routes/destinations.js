@@ -121,7 +121,6 @@ router.get('/delete', async (req, res, next) => {
 
 //여행지 추천
 //일단 가장 값이 높은 하나만 찾기 위해 findOne 사용
-//만약 상위 n개중 하나 뽑는식으로 다양한 가능성을 조금 준다면 findAll과 limit 조건 사용할듯
 router.get('/recommend', async (req, res, next) => {
     try {
         const rating = await Review.findOne({
@@ -144,7 +143,6 @@ router.get('/recommend', async (req, res, next) => {
             raw : true
         });
 
-        //값이 없을때를 대비한 예외처리
         const id_1 = rating ? rating.destination_id : null;
         const id_2 = visiting ? visiting.id : null;
         const id_3 = recent ? recent.destination_id : null;

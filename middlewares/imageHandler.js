@@ -25,7 +25,7 @@ const fileFilter = (req, file, callback) => {
 const destinationUpload = multer({
     storage: destinationStorage,
     fileFilter: fileFilter,
-    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB 제한
+    limits: { fileSize: 5 * 1024 * 1024 }
 });
 
 //이미지 삭제

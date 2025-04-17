@@ -2,9 +2,10 @@ const accountSid = process.env.TWILIO_SID
 const authToken = process.env.TWILIO_TOKEN;
 const client = require('twilio')(accountSid, authToken);
 
+//twillo 모듈을 이용한 sms전송 기능
 const sendSMS = (latitude, longitude, address) => {
     const sender = process.env.TWILIO_SENDER;
-    const recipient = '받는 사람 번호'; // 예: '+821012345678'
+    const recipient = '받는 사람 번호'; // ex) '+821012345678'
 
     const messageBody = `
 긴급 상황입니다. 신고 부탁드립니다.
@@ -12,7 +13,7 @@ const sendSMS = (latitude, longitude, address) => {
 위도: ${latitude}
 경도: ${longitude}
 주소: ${address}
-    `.trim(); // trim()은 앞뒤 공백 제거
+    `.trim();
 
     client.messages
         .create({

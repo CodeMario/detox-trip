@@ -176,7 +176,6 @@ router.get('/emergency-contact/delete', async (req, res, next) => {
 });
 
 //비상 메시지 전송
-//위치정보는 Geolocation API 이용해보면 될듯?
 router.get('/sms', async (req, res, next) => {
     try {
         const {latitude, longitude ,address} = req.query;
